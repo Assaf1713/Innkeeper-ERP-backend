@@ -33,14 +33,6 @@ app.use((err, req, res, next) => {
 
 
 
-// Production static serving (for later builds)
-if (process.env.NODE_ENV === 'production') {
-const clientBuildPath = path.join(__dirname, '../../client/dist');
-app.use(express.static(clientBuildPath));
-app.get('*', (_, res) => {
-res.sendFile(path.join(clientBuildPath, 'index.html'));
-});
-}
 
 
 const PORT = process.env.PORT || 5000;
