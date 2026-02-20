@@ -4,7 +4,7 @@ const { verifyToken, requireRoles } = require("../middlewares/authMiddleware");
 
 // delete a general expense by id
 
-const { deleteGeneralExpense } = require('../controllers/GeneralExpensesController');
+const { deleteGeneralExpense } = require('../controllers/generalExpensesController');
 router.use(verifyToken, requireRoles("SUPER_ADMIN", "ADMIN"));
 router.delete('/:id', deleteGeneralExpense);
 
