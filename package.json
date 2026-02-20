@@ -1,0 +1,39 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "seed:lookups": "node scripts/seedlookup.js",
+    "seed:expenses": "node scripts/seedExpenses.js",
+    "seed:customers": "node scripts/seedCustomers.js",
+    "seed:employees": "node scripts/seedEmployees.js",
+    "seed:wageShifts": "node scripts/seedEventWageShifts.js",
+    "seed:alcoholExpenses": "node scripts/seedAlcoholExpenses.js",
+    "seed:generalExpenses": "node scripts/seedGeneralExpenses.js",
+    "seed:eventActuals": "node scripts/seedEventActuals.js",
+    "fix:expenseCategories": "node scripts/fixExpenseCategories.js",
+    "migrate:rent": "node src/migrations/updateRentCategory.js",
+    "seed:settings": "node scripts/seedSettings.js",
+    "seed:admin": "node scripts/seedSuperAdmin.js"
+  },
+  "dependencies": {
+    "@googlemaps/google-maps-services-js": "^3.4.2",
+    "axios": "^1.13.2",
+    "bcryptjs": "^3.0.3",
+    "cors": "*",
+    "dotenv": "*",
+    "express": "*",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "*",
+    "morgan": "*",
+    "multer": "^2.0.2"
+  },
+  "devDependencies": {
+    "localtunnel": "^2.0.2",
+    "ngrok": "^5.0.0-beta.2",
+    "nodemon": "*"
+  }
+}

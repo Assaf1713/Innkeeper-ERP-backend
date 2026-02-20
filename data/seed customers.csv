@@ -1,0 +1,357 @@
+﻿name,email,IsBusiness,payingCustomer
+ג׳קי מצא,jacky@matza.org.il,business,yes
+עידו,Ido.azaria@pwc.com,business,yes
+שרון,finance@tigloo.io,business,yes
+סאשה אטדגי,info@justperfect.events,business,yes
+מואיז,moise@by126.org,business,yes
+ניקול,nikole.kostiner@traxretail.com,business,yes
+AppsFlyer LTD,daniella.braun@appsflyer.com,business,yes
+FIVERR INTERNATIONAL LTD,maytal.perez@fiverr.com,business,yes
+Jibe Ventures,"danny@jibevc.com,assaf@jibevc.com",business,yes
+NextVision,tatyana.k@nextvision-sys.com,business,yes
+OnFire AI LTD,invoices@onfire.ai,business,yes
+"אוג הפקות בע""מ",jenny@og-group.com,business,yes
+"אייל נאור שיווק חוויתי בע""מ",tanya@exp.co.il,business,yes
+אלכסנדר בולנז'רי,erez@belsol.co.il,business,yes
+אקטיביטי בייס טרפי סנטר,info@m2mcenter.org,business,yes
+אקסלוסיב נטוורקס,irisw@newstory-group.co.il,business,yes
+גלובוס פארמה בע״מ,tony@together-pharma.com,business,yes
+טלדור תקשורת ואבטחת מידע,natalil@taldor.co.il,business,yes
+יונינה הפקות,yonina@yoninaevents.com,business,yes
+יורודרייב ניהול ציי רכב בע״מ,avital@eurodrive.co.il,business,yes
+יעד פרזול,ofer@pirzul.co.il,business,yes
+מולה הפקות,info@mulla.co.il,business,yes
+מורן גולדשטיין,moran@morangoldevents.com,business,yes
+"מטריקס אי.טי בע""מ",nadavva@matrix.co.il,business,yes
+נאמנות תיאטרון הקאמרי,hadasb@cameri.co.il,business,yes
+סאנביט סוופטוור פיימנט בעמ,gill.altit@sunbit.com,business,yes
+עמותת חיל האוויר,"yanivcoh7@gmail.com,don@amutaiaf.org.il",business,yes
+"פסגות וואליו ניהול בע""מ",adig@psagot.co.il,business,yes
+קבוצת איה בעמ,libby@bigaya.com,business,yes
+קלע מחקר ואסטרטגיה בעמ,yael.markman@ke-la.com,business,yes
+"קרדיוואלב בע""מ",yifat@cardiovalve.com,business,yes
+"רובל חדשנות בע""מ",galit@robel-innovations.com,business,yes
+"ריבלין הפקות בע""מ",liav@rivlin.org.il,business,yes
+רניום ציוד למעבדות מחקר,"marketingfi@rhenium.co.il,lirazi@rhenium.co.il,marketing@rhenium.co.il",business,yes
+"רשף עבודות חשמל בע""מ",limor@reshefe.com,business,yes
+"אימפרבה בע""מ",Hila.sagi@thalesgroup.com,business,yes
+"אפוריה טכנולוגיות בע""מ",yaeli@aporia.com <yaeli@aporia.com>,business,yes
+"ארניקס בע""מ",efrat.reznik@earnix.com,business,yes
+גרנולייט,dana.graff@granulate.io,business,yes
+"סבון תעשיות בע""מ",Hagit.fante@sabon.com,business,yes
+"סוויס פרו הפקות ויזמות בע""מ",or@swisspro.co.il,business,yes
+קנשו בע״מ,Ronibal81@gmail.com,business,yes
+"קליל תעשיות בע""מ",hadas@klil.co.il,business,yes
+"עמית, פולק, מטלון ושות׳",tanyap@apm.law,business,yes
+"מטרו מוטור שיווק (1981) בע""מ",litalz@metro.co.il,business,yes
+כרמל דיירקט,Mor@carmeldirect.com,business,yes
+"טמבור בע""מ",MorS@tambour.co.il,business,yes
+דנציגר משק פרחים דן,adi.ben_shlomo@danziger.co.il,business,yes
+"דניה סיבוס בע""מ",avitalm@d-c.co.il,business,yes
+"אימפרבה בע""מ",hila.sagi@imperva.com,business,yes
+יהודית מזנגיא,yehuditmazi8@gmail.com,private,yes
+KLR,alter.yael@gmail.com,private,yes
+אילנית חן,ilanitchen11@gmail.com,private,yes
+"ד""ר מירה מנביץ מזור",mirra.manevich@gmail.com,private,yes
+הפניקס משכנתאות זהב,anilatiby@gmail.com,private,yes
+יובל קינן,yuval.keinan1@gmail.com,private,yes
+לירון רוזנבלום,lironrozenblum11@gmail.com,private,yes
+"מושקט טכנולוגיות בע""מ",talmuskat@gmail.com,private,yes
+סיגמה מקס סרוויס,avieyal@gmail.com,private,yes
+סער ברגר,saarbergeron8@gmail.com,private,yes
+פיין הפקות,finehousetlv@gmail.com,private,yes
+קולין גולדשטיין,ariellaross2@gmail.com,private,yes
+רעות לוי,reutlevi07@gmail.com,private,yes
+שני שר אביבי,shanisher7@gmail.com,private,yes
+עידן אשכנזי,Idan@myteam.co.il,business,no
+דין בן יהודה,deanb@negev-group.co.il,business,no
+דפנה,odin@dodin.co.il,business,no
+בני,benny@home-sh.co.il,business,no
+ליהי בן דרור,lihi.ben.dror@intel.com,business,no
+ניצן סעדון,nitzan.saadon@mail.huji.ac.il,business,no
+דניאל צדוק,danielle@surfacademy.co.il,business,no
+מאי חיים,may.haim@cltd.co.il,business,no
+שני אברבוך רחמים,shani.ar@finonex.com,business,no
+ליאור אסטרוק,lior.astruc@huskeys.io,business,no
+מיטל,meytalm@brainpop.co.il,business,no
+Anastasia Madar,amadar@ebay.com,business,no
+קרן אלישר,keliachar@walla.com,business,no
+א.פ פרו הפקות,info@appro.co.il,business,no
+בן אטל,bena@beeriprint.co.il,business,no
+עינב חזות,einav.hazut@poalim.co.il,business,no
+ריקי קציר,riki@planx.co.il,business,no
+מורן יונה,morany@expotelaviv.co.il,business,no
+ורוניקה לוי-רוזנר,veronica.l.rosner@wavebl.com,business,no
+עומר,omer.malka@guideline.co.il,business,no
+מירית,mirit.zvi@biodata.com,business,no
+ליטל צרפתי,litalz@metro.co.il,business,no
+נופר הוני,nofar.honi@walla.com,business,no
+לילית,lilitmmj@gamil.com,business,no
+רייזין ניקול,barnikol515@gmail.con,business,no
+קרין,jkkk@gmail.xom,business,no
+עתי,attay@prod.so,business,no
+שני רבי,shani.r@bbumgames.com,business,no
+יואב בן פורת,yoavbp@bpr-law.com,business,no
+ספיר,sapiree@matan-il.com,business,no
+אנה קרוטין שפירא,anna@azorim.co.il,business,no
+טל רונן,taltula51@gmail.con,business,no
+לנה,lena@gogerman.co.il,business,no
+שירי זילברמן,Shiriz@alltest.co.il,business,no
+עמית,amit@amitwood.com,business,no
+הודיה,hodaya.t@rami-levy.co.il,business,no
+נווה אבוקסיס,buv12@walla.com,business,no
+או דניאל,art@ganili.co.il,business,no
+שני ברג,Shani.berg@hmrc.co.il,business,no
+מורן אליהו,moran@p-granit-ins.co.il,business,no
+ספיר תשובה,sapir@joindaisy.com,business,no
+עוז גוטין,office@muze-pro.co.il,business,no
+Shani,me@shani.ch,business,no
+שקד מוניץ,shakedmunitz@pelech.org.il,business,no
+אור אוליביה בורשטיין,bursteinor@gamil.com,business,no
+לילך,lilach_b23@walla.com,business,no
+נופר וקנין,nofarv@plev.org.co.il,business,no
+ערן,eran@zechovoy.co.il,business,no
+נופר גואטה,nofari.gu@gmail.con,business,no
+רוני ולנסי,ronivalenci123@gmail.com,private,no
+גל,gal.roimi@gmail.com,private,no
+אריאל,Arieltetenboim@gmail.com,private,no
+אורית לוי,tutca2000@gmail.com,private,no
+יונתן טאובר,yonatantauber@gmail.com,private,no
+תמיר לבנטר,tamirleventer3@gmail.com,private,no
+מיטל קוקה,meitalcoca7@gmail.com,private,no
+ליאור דראל,ldarel@gmail.com,private,no
+נועה,noaponey@gmail.com,private,no
+ליזה,elizastotland@gmail.com,private,no
+מליקר דורון,vip221282@gmail.com,private,no
+טל,talon230120@gmail.com,private,no
+הדר,hadar.rotstein@gmail.com,private,no
+תומר,twmr640@gmail.com,private,no
+לאון שוורצברג,leoneli61@gmail.com,private,no
+ספיר גל,ybohaa@gmail.com,private,no
+עידו,ibgazit@gmail.com,private,no
+רון אוחיון,ron010299@gmail.com,private,no
+לנה כהן,lenaabayev@gmail.com,private,no
+נועם,noamariel04@gmail.com,private,no
+לירון חטאב,nevohe129@gmail.com,private,no
+אור סמולרסקי,smolarskior@gmail.com,private,no
+שלי מנצור,theshelly777777@gmail.com,private,no
+רועי אפשטיין,royepst@gmail.com,private,no
+רז להב,razlahav33@gmail.com,private,no
+יוסי כהן,yossi.coh@gmail.com,private,no
+טל אפק,talafek@gmail.com,private,no
+אסף,asafharel7@gmail.com,private,no
+Sherry Pietrzak,sherry.pietrzak@gmail.com,private,no
+קרן,karennitzan@gmail.com,private,no
+גליה שחר,galia.schachar@gmail.com,private,no
+Adi Dagan,adidagan2271@gmail.com,private,no
+עומר גוטליב,gottlibim@gmail.com,private,no
+עידן גני,idangani7@gmail.com,private,no
+ליאור יקל,liorjekel1@gmail.com,private,no
+מעין,maayangross88@gmail.com,private,no
+אורנית רותם,ornit.rotem@gmail.com,private,no
+שגב,segevba1001@gmail.com,private,no
+גיל,gil.bloch@gmail.com,private,no
+Vitali Kalantarov👨‍🍳,chefvitvut@gmail.com,private,no
+שרון,sharonskvirsky@gmail.com,private,no
+רותם פרץ,rotemperetz123@gmail.com,private,no
+שרית,saritdapas65@gmail.com,private,no
+בר אביטל,baravital67@gmail.com,private,no
+ספיר בן שושן,sapirbsh@gmail.com,private,no
+רותם ברגר,rotemberger@gmail.com,private,no
+נתיה גולן,natiacc@gmail.com,private,no
+אליאור,eliorcohen9@gmail.com,private,no
+אלרועי אהרוני,elroieah@gmail.com,private,no
+יסמין אלוק,oc.jasmin@gmail.com,private,no
+החברה לתרבות בת ים,dudi2532003@gmail.com,private,no
+עידית,gingiedit@gmail.com,private,no
+שרון סעדון,saadonnatalie@gmail.com,private,no
+נועה,noa1shimroni@gmail.com,private,no
+תמר,tamar.hadad19@gmail.com,private,no
+ענת זלצשטיין,azalstein@gmail.com,private,no
+פלאי רפפורט,pelirapa@gmail.com,private,no
+שרונה גודר,Sharonagod@gmail.com,private,no
+סלין רם,Celineram@gmail.com,private,no
+מאיה ג'ורג'י,maya.spier@gmail.com,private,no
+מאי בר,maibar2410@gmail.com,private,no
+מיכל,danamichal9@gmail.com,private,no
+אטי,etialon2000@gmail.com,private,no
+עינת רם,eint92a@gmail.com,private,no
+עדיאל,beefy_fizzier5e@icloud.com,private,no
+ים,yamlivni@gmail.com,private,no
+עדן,edenmor101298@gmail.com,private,no
+שמואל מזרחי,smizrahi42@gmail.com,private,no
+דביר,benariedvir@gmail.com,private,no
+Tal,tal.nathanel@gmail.com,private,no
+יערית,yarittiran1@gmail.com,private,no
+קרין,kakdss@gmail.com,private,no
+טל,tali1234400@gmail.com,private,no
+מיקה אדלר,mikadler@gmail.com,private,no
+מירלה יואל,mirella1502@gmail.com,private,no
+ענבר,inbardls@gmail.com,private,no
+אבי,aviaviaviavi967@gmail.com,private,no
+נועה לנגליב,noalangliv1009@gmail.com,private,no
+חן גלאם,chenochana3@gmail.com,private,no
+נויה,noya.parasol@gmail.com,private,no
+מגי נוה,Magimaginave@gmail.com,private,no
+טל פלג,pelegtal1501@gmail.com,private,no
+שרון,sharonnadav277@gmail.com,private,no
+תומר,tomerg5050@gmail.com,private,no
+דן,danavitan5@gmail.com,private,no
+בשורה רגב,Besoraregev@gmail.com,private,no
+רומי שלי,romirabinovich@gmail.com,private,no
+לירן מחפוד,liranmahfud@gmail.com,private,no
+מוריה קנדל לרון,moriya.k@gmail.com,private,no
+גבריאל זנקו,gabrielzankov@gmail.com,private,no
+סהר אמר,saharamar6543@gmail.com,private,no
+עידו,idoo9oo@gmail.com,private,no
+אלה,ellaschwarz100@gmail.com,private,no
+ברק קהלני,barakk2012@gmail.com,private,no
+שחף קרם,shahafkram@gmail.com,private,no
+שי דבי,shay.daby@gmail.com,private,no
+שני בשן,shanig123@gmail.com,private,no
+אריאל,ariel.akrish@gmail.com,private,no
+אסתי,estitarab161@gmail.com,private,no
+שיר,shir55198@gmail.com,private,no
+יובל קריצ'מן,krichmanyuval@gmail.com,private,no
+רוני,ronchit1996@gmail.com,private,no
+צבי לסרי,tzvylasry@gmail.com,private,no
+תמר,tamar.zilberman3@gmail.com,private,no
+מיכל גבאי רווח,michalir111@gmail.com,private,no
+עילי מלכה,rrddcc63@gmail.com,private,no
+עדן,edenshimon2995@gmail.com,private,no
+שירז גדמו,shirazge123123@gmail.com,private,no
+בניה אביטן,bnayavitan@gmail.com,private,no
+הדס בוסקילה,buskilahadas@gmail.com,private,no
+הילה ידעי,hilayad@gmail.com,private,no
+יצחק מסילתי,izhakmesilaty@gmail.com,private,no
+ויקטור רבקין,victor.rabkin@gmail.com,private,no
+נעם אפרייאט,noami20081@gmail.com,private,no
+אסי,Asiayala99@gmail.com,private,no
+גיא,aelionguy@gmail.com,private,no
+Yarden Horev,y89horev@gmail.com,private,no
+Eyal cohen,coheneyal123@gmail.com,private,no
+נוייה לינצקי,noya.linetzki@gmail.com,private,no
+לנה,lenochkagogerman@gmail.com,private,no
+דנה,tzookled@gmail.com,private,no
+Yaakov Ishay Levi,ishay005@gmail.com,private,no
+ליז בן דוד,lizbendavid5@gmail.com,private,no
+זהבית לוי,zehavit196@gmail.com,private,no
+מעיין,maayanka178@gmail.com,private,no
+נועם חזן,hazannoam6@gmail.com,private,no
+קטי,kattieiseec@gmail.com,private,no
+סיון,sivansatun@gmail.com,private,no
+אור,or.fux123@gmail.com,private,no
+דפנה פישר,fisher.dafna@gmail.com,private,no
+שרית ברוך,saritoosh101@gmail.com,private,no
+ירין בוקר,yarin83@gmail.com,private,no
+ענבל,inbalkitov@gmail.com,private,no
+אפרת,efratosh44@gmail.com,private,no
+יפתח,yiftachantignus@gmail.com,private,no
+נטלי קליין,nataliekleinisrael@gmail.com,private,no
+Aviv Gvili,avivgvili6@gmail.com,private,no
+יסמין ויצמן,yasminweuzman@gmail.com,private,no
+בתאל פרידגה,batel2602@gmail.com,private,no
+זיו,zivbental@gmail.com,private,no
+ליאת שמני,liats1974@gmail.com,private,no
+אור,orkendy@gmail.com,private,no
+רוני וולף,roni.wolf100@gmail.com,private,no
+Yamit Sol,solyamit@gmail.com,private,no
+אביגיל חגי,avigailhagay@gmail.com,private,no
+קסניה,xenia1990sh@gmail.com,private,no
+יובל גולדנשטיין,flecks-decal-66@icloud.com,private,no
+ז׳ניה,sjenok@gmail.com,private,no
+הדס סגל,hadass2520@gmail.com,private,no
+Beהדס סגל,hadass2510@gmail.com,private,no
+אדר,adarga012@gmail.com,private,no
+לורין הברה,lorinhabra@gmail.com,private,no
+עידו זלנפרוינד,ido.seelenfreund@gmail.com,private,no
+אלחנן חדד,1elhanan.h1@gmail.com,private,no
+שירה,shira.strt@gmail.com,private,no
+עמית,amitdvora1@gmail.com,private,no
+מדינה גבאי,Medinaaminov@gmail.com,private,no
+שירה קרצ׳ין,krechins2@gmail.com,private,no
+נטע,netafr3@gmail.com,private,no
+אופל,Opalgubko22@gmail.com,private,no
+ליאור בו,liorbund@gmail.com,private,no
+שני סמרל,shanisamarel@gmail.com,private,no
+טל,tolaber4@gmail.com,private,no
+ליאור,liorlon001@gmail.com,private,no
+בן,byamin35@gmail.com,private,no
+אסתר,amonester@gmail.com,private,no
+חן חלפון,chen020275@gmail.com,private,no
+טלי טרנר,talitest@gmail.com,private,no
+יודפת ביטון,yodfatbb@gmail.com,private,no
+מאי אלגוב,my5560370@gmail.com,private,no
+ישועה,yeshuaa2106@gmail.com,private,no
+דנה אשכנזי,dana88999@gmail.com,private,no
+עדן פלדמן,edenkoza862@gmail.com,private,no
+בטי ריפולד,bet.rifold@gmail.com,private,no
+עומרי לוי,tamirlevy246@gmail.com,private,no
+נועה סיקסיק יוסף,noasiksik@gmail.com,private,no
+מירב גבאי,merav.gabay13@gmail.com,private,no
+עינב מסורי,eynavmasuri61@gmail.com,private,no
+שרית שלמוני,sertal36@gmail.com,private,no
+Tewffic Hinnawi,hinnawimport@gmail.com,private,no
+יהונתן,kisleryoni@gmail.com,private,no
+צליל אמש,tzliliemesh@gmail.com,private,no
+הדר אדרי,hadaredri278@gmail.com,private,no
+אורי פלמון מעוז,oripm10@gmail.com,private,no
+תמר אברמוביץ,abramovichtamar@gmail.com,private,no
+נועם עזרן,Noamazran123@gmail.com,private,no
+יעל,yaelohana@gmail.com,private,no
+ברוך,baruchjim1983@gmail.com,private,no
+אנדי,andih54@gmail.com,private,no
+חן ישראל,chenisrael00@gmail.com,private,no
+חנית שפירא,hanitmor@gmail.com,private,no
+אמיליה,emifayman1@gmail.com,private,no
+נוי אסולין,noyasoolin@gmail.com,private,no
+שי גולן,shaygolan104@gmail.com,private,no
+לירי מור,liri123mor62@gmail.com,private,no
+הודיה,hodayak4176@gmail.com,private,no
+עמית גרינברג,amit.lehavim@gmail.com,private,no
+טל בנו,talivri85@gmail.com,private,no
+עוז,ozgranit@gmail.com,private,no
+תומר קמינסקי,tomerkaminsky0@gmail.com,private,no
+עודד לוי,odedlevy81@gmail.com,private,no
+חגית צופריק,hagitboby@gmail.com,private,no
+רן,ranzada@gmail.com,private,no
+בן שחר פרץ,benibeni2626@gmail.com,private,no
+רמה נדב,ramandv1@gmail.com,private,no
+עמר קוריאט,coriat15@gmail.com,private,no
+נועה,noasabag3010@gmail.com,private,no
+גאולה,galedri30@gmail.com,private,no
+אליאורה,eliorascam@gmail.com,private,no
+Mor Churi,mor.churi@gmail.com,private,no
+אור מנדל,ormendel42@gmail.com,private,no
+אומגה דור,meravben311@gmail.com,private,no
+שירה חן,shirahen48@gmail.com,private,no
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
+,,,
