@@ -123,30 +123,45 @@ exports.createLeadFromWebhook = async (req, res) => {
     const rawData = req.body;
     console.log("🔍 Processing Lead:", JSON.stringify(rawData, null, 2));
 
-    // helper function to extract fields with possible Hebrew labels
-    const extractField = (key) => {
+    // Smart helper function to extract fields from both Advanced Data and Default formats
+    const extractField = (englishId, oldHebrewLabel) => {
+      // 1. Try Advanced Data format (using the English ID set in Elementor)
+      if (rawData.fields && rawData.fields[englishId]) {
+        return rawData.fields[englishId].value;
+      }
+      
+      // 2. Fallback to the old flat format (backward compatibility)
       return (
-        rawData[key] || rawData[`אין תווית ${key}`] || rawData[`${key}`] || null
+        rawData[englishId] || 
+        rawData[oldHebrewLabel] || 
+        rawData[`אין תווית ${englishId}`] || 
+        rawData[`אין תווית ${oldHebrewLabel}`] || 
+        null
       );
     };
 
-    // Security check for malicious content
-    for (const key in rawData) {
-      if (typeof rawData[key] === "string" && checkMalisiousContent(rawData[key])) {
-        console.error(`❌ Malicious content detected in field ${key}: ${rawData[key]}`);
-        return; // Can't send response again, just exit
+    // Extracting data using the IDs (and fallback labels)
+    const rawPhone = extractField("phone", "phone");
+    const name = extractField("name", "name");
+    const email = extractField("email", "email");
+    const message = extractField("message", "message");
+    const preferences = extractField("preferences", "איך לחזור אליי?");
+    const rawDate = extractField("eventDate", "תאריך האירוע");
+
+    // Extracting metadata (Advanced Data places this in a dedicated object)
+    const form_name = rawData?.form?.name || extractField("form_name", "form_name");
+    const page_url = rawData?.meta?.page_url?.value || rawData?.meta?.page_url || extractField("page_url", "קישור לעמוד");
+    const userAgent = rawData?.meta?.user_agent?.value || rawData?.meta?.user_agent || extractField("user_agent", "פרטי משתמש");
+    const ip = rawData?.meta?.remote_ip?.value || rawData?.meta?.remote_ip || extractField("remote_ip", "IP השולח");
+
+    // Security check for malicious content (Updated to check the extracted string values)
+    const fieldsToCheck = [rawPhone, name, email, message, preferences];
+    for (const val of fieldsToCheck) {
+      if (typeof val === "string" && checkMalisiousContent(val)) {
+        console.error(`❌ Malicious content detected: ${val}`);
+        return; // Already sent 200 response, just exit
       }
     }
-
-    // Extracting data
-    const rawPhone = extractField("phone");
-    const name = extractField("name");
-    const email = extractField("email");
-    const message = extractField("message");
-    const preferences = extractField("איך לחזור אליי?");
-    const rawDate = extractField("תאריך האירוע");
-    const form_name = extractField("form_name");
-    const page_url = extractField("קישור לעמוד");
 
     // Parse event date
     let eventDate = null;
@@ -162,38 +177,28 @@ exports.createLeadFromWebhook = async (req, res) => {
 
     if (!normalizedPhone && rawPhone) {
       console.error(`❌ Invalid phone number received: ${rawPhone}`);
-      // Already sent 200 response, just log and exit without saving to DB
       return;
     }
 
-    // source determination
+    // Source determination
     let source = "original_contact_form"; // default for unknown sources
     const pageUrl = (page_url || "").toLowerCase();
     const isFromLandingPage = pageUrl.includes("landing");
     
     if (form_name && form_name.includes("WhatsApp")) {
-      // WhatsApp form submissions
-      if (isFromLandingPage) {
-        source = "landing_page_whatsapp_form";
-      } else {
-        source = "whatsApp_original";
-      }
+      source = isFromLandingPage ? "landing_page_whatsapp_form" : "whatsApp_original";
     } else if (form_name && form_name.includes("contact_form")) {
-      // Contact form submissions
-      if (isFromLandingPage) {
-        source = "landing_page_contact_form";
-      } else {
-        source = "original_contact_form";
-      }
+      source = isFromLandingPage ? "landing_page_contact_form" : "original_contact_form";
     }
+
     // Check for existing customer by email to link
     let relatedCustomerId = null;
-  if (email) {
+    if (email) {
       const existingCustomer = await Customer.findOne({ email: email.toLowerCase().trim() });
       if (existingCustomer) {
           relatedCustomerId = existingCustomer._id;
       }
-  }
+    }
 
     // Creating the new lead
     const newLead = new Lead({
@@ -204,12 +209,11 @@ exports.createLeadFromWebhook = async (req, res) => {
       preferences: preferences,
       eventDate: eventDate,
       source: source,
-      relatedCustomerId: relatedCustomerId, // linking to existing customer if found
-      // Saving metadata for future analysis
+      relatedCustomerId: relatedCustomerId,
       marketingData: {
-        landingPage: rawData["קישור לעמוד"],
-        userAgent: rawData["פרטי משתמש"],
-        ip: rawData["IP השולח"],
+        landingPage: page_url,
+        userAgent: userAgent,
+        ip: ip,
       },
     });
 
