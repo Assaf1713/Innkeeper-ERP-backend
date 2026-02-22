@@ -146,7 +146,7 @@ exports.createLeadFromWebhook = async (req, res) => {
     const email = extractField("email", "email");
     const message = extractField("message", "message");
     const preferences = extractField("preferences", "איך לחזור אליי?");
-    const rawDate = extractField("eventDate", "תאריך האירוע");
+    const rawDate = extractField("event_date", "תאריך האירוע");
 
     // Extracting metadata (Advanced Data places this in a dedicated object)
     const form_name = rawData?.form?.name || extractField("form_name", "form_name");
