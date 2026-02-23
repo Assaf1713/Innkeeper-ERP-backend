@@ -10,6 +10,7 @@ const {
   getEventById,
   updateEvent,
   updateIceExpenses,
+  updateCarType,
   ListofClosedEventsDates,
 } = require("../controllers/eventsController");
 const {
@@ -43,6 +44,7 @@ router.use(verifyToken, requireRoles("SUPER_ADMIN", "ADMIN"));
 
 // Ice Expenses Route
 router.put("/:id/ice-expenses", updateIceExpenses);
+router.put("/:id/car-type", updateCarType);
 
 // Event Alcohol Expenses Routes
 router.get("/:id/alcohol-expenses", listAlcoholExpenses);

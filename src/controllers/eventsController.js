@@ -700,6 +700,28 @@ exports.updateIceExpenses = async (req, res, next) => {
   }
 };
 
+exports.updateCarType = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { carType } = req.body;
+
+    const allowedCarTypes = ["transporter", "mazda", "both", ""];
+    if (!allowedCarTypes.includes(carType)) {
+      return res.status(400).json({ error: "Invalid carType" });
+    }
+
+    const eventActual = await EventActual.findOneAndUpdate(
+      { event: id },
+      { carType },
+      { new: true, upsert: true },
+    );
+
+    res.json({ eventActual, message: "Car type updated successfully" });
+  } catch (err) {
+    next(err);
+  }
+};
+
 exports.ListofClosedEventsDates = async (req, res, next) => {
   try {
     const closedStatus = await EventStatus.findOne({ code: "CLOSED" });
