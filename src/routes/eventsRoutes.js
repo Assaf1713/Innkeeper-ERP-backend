@@ -12,6 +12,7 @@ const {
   updateIceExpenses,
   updateCarType,
   ListofClosedEventsDates,
+  BuildPredictiveConsumptionDataTable,
 } = require("../controllers/eventsController");
 const {
   getPlannedShiftsByEventId,
@@ -64,6 +65,9 @@ router.put("/:id/wage-shifts/mark-all-paid", markAllShiftsAsPaid);
 // Event Actuals routes
 router.get("/:id/actuals", getEventActuals);
 router.put("/:id/actuals", upsertEventActuals);
+
+// Event predictive consumption table route
+router.get("/:id/predictive-consumption", BuildPredictiveConsumptionDataTable);
 // GET /api/events
 
 router.get("/", listEvents);

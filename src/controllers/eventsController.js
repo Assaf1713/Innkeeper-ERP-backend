@@ -5,12 +5,13 @@ const MenuType = require("../models/MenuType");
 const EventStatus = require("../models/EventStatus");
 const EventActual = require("../models/EventActual");
 const Customers = require("../models/Customers");
+const AlcoholExpense = require("../models/AlcoholExpense");
+const InventoryProduct = require("../models/InventoryProduct");
 const Lead = require("../models/Lead");
 const CustomerController = require("./customerController");
 const { upsertBrevoContact } = require("../services/brevoAddCustomer");
 const { getTravelEstimate } = require("../services/googleMapsService");
-
-
+const { calculateCategoryStats } = require("../services/predictionService");
 
 const calculatePrice = (priceInput) => {
   // Handle null/undefined early
@@ -185,9 +186,9 @@ exports.createEvent = async (req, res, next) => {
     const eventDateObj = eventDate ? new Date(eventDate) : null;
 
     if (!customerName || !eventDateObj) {
-      return res.status(400).json({ 
-        error: "Customer name and event date are required fields", 
-        number: 1 
+      return res.status(400).json({
+        error: "Customer name and event date are required fields",
+        number: 1,
       });
     }
 
@@ -205,10 +206,12 @@ exports.createEvent = async (req, res, next) => {
       if (!customer) {
         // Validate required fields for new customer
         if (!customerName || !email || email.trim() === "") {
-          console.log("Missing customerName or email for new customer creation");
-          return res.status(400).json({ 
-            error: "Customer name and email are required", 
-            number: 2 
+          console.log(
+            "Missing customerName or email for new customer creation",
+          );
+          return res.status(400).json({
+            error: "Customer name and email are required",
+            number: 2,
           });
         }
 
@@ -250,15 +253,24 @@ exports.createEvent = async (req, res, next) => {
     // ====================================================================
     // STAGE 3: Fetch default lookup values (parallel query for performance)
     // ====================================================================
-    const [eventTypeDefault, leadSourceDefault, menuTypeDefault, statusDefault] = 
-      await Promise.all([
-        EventType.findOne({ isActive: true, label: "אירוע קוקטיילים פרטי" }),
-        LeadSource.findOne({ isActive: true, label: "גוגל" }),
-        MenuType.findOne({ isActive: true, label: "קלאסיק" }),
-        EventStatus.findOne({ isActive: true, label: "לא נסגר" }),
-      ]);
+    const [
+      eventTypeDefault,
+      leadSourceDefault,
+      menuTypeDefault,
+      statusDefault,
+    ] = await Promise.all([
+      EventType.findOne({ isActive: true, label: "אירוע קוקטיילים פרטי" }),
+      LeadSource.findOne({ isActive: true, label: "גוגל" }),
+      MenuType.findOne({ isActive: true, label: "קלאסיק" }),
+      EventStatus.findOne({ isActive: true, label: "לא נסגר" }),
+    ]);
 
-    if (!eventTypeDefault || !leadSourceDefault || !menuTypeDefault || !statusDefault) {
+    if (
+      !eventTypeDefault ||
+      !leadSourceDefault ||
+      !menuTypeDefault ||
+      !statusDefault
+    ) {
       return res.status(400).json({
         error: "Missing lookup values, run seed:lookups script",
         number: 3,
@@ -284,9 +296,9 @@ exports.createEvent = async (req, res, next) => {
     ]);
 
     if (!eventType || !leadSource || !menuType || !status) {
-      return res.status(400).json({ 
-        error: "Invalid lookup codes provided", 
-        number: 4 
+      return res.status(400).json({
+        error: "Invalid lookup codes provided",
+        number: 4,
       });
     }
 
@@ -315,7 +327,7 @@ exports.createEvent = async (req, res, next) => {
     // ====================================================================
     let travelDistance = null;
     let travelDuration = null;
-    
+
     if (eventAddress) {
       const estimate = await getTravelEstimate(eventAddress, eventDate);
       if (estimate) {
@@ -357,7 +369,9 @@ exports.createEvent = async (req, res, next) => {
         relatedCustomer: finalCustomerId,
         relatedEvent: newEvent._id,
       });
-      console.log(`Lead ${leadId} qualified and linked to event ${newEvent._id}`);
+      console.log(
+        `Lead ${leadId} qualified and linked to event ${newEvent._id}`,
+      );
     }
 
     // ====================================================================
@@ -486,8 +500,6 @@ exports.updateEvent = async (req, res, next) => {
     if (status) patch.status = status._id;
     if (customer) patch.customer = customer._id;
 
-    
-
     // Get current event to check previous status
     const currentEvent = await Event.findById(req.params.id).populate(
       "status",
@@ -498,29 +510,35 @@ exports.updateEvent = async (req, res, next) => {
 
     // 2. Check: Do we need to recalculate the route?
     // Trigger if address changed OR date changed
-    const isAddressChanged = patch.address && patch.address !== currentEvent.address;
-    const isDateChanged = patch.eventDate && new Date(patch.eventDate).getTime() !== new Date(currentEvent.eventDate).getTime();
+    const isAddressChanged =
+      patch.address && patch.address !== currentEvent.address;
+    const isDateChanged =
+      patch.eventDate &&
+      new Date(patch.eventDate).getTime() !==
+        new Date(currentEvent.eventDate).getTime();
 
     // Perform calculation if changed, or if data is missing (legacy events)
-    const needsCalculation = isAddressChanged || isDateChanged || (!currentEvent.travelDistance && currentEvent.address);
+    const needsCalculation =
+      isAddressChanged ||
+      isDateChanged ||
+      (!currentEvent.travelDistance && currentEvent.address);
 
     if (needsCalculation) {
-        console.log("Calculating travel estimate via Google Maps...");
-        
-        // Use new address/date if provided in patch, otherwise fallback to current DB value
-        const targetAddress = patch.address || currentEvent.address;
-        const targetDate = patch.eventDate || currentEvent.eventDate;
+      console.log("Calculating travel estimate via Google Maps...");
 
-        // Call the service
-        const estimate = await getTravelEstimate(targetAddress, targetDate);
+      // Use new address/date if provided in patch, otherwise fallback to current DB value
+      const targetAddress = patch.address || currentEvent.address;
+      const targetDate = patch.eventDate || currentEvent.eventDate;
 
-        if (estimate) {
-            console.log("Got estimate:", estimate);
-            patch.travelDistance = estimate.distanceValue; // Store in meters
-            patch.travelDuration = estimate.durationValue; // Store in seconds
-        }
+      // Call the service
+      const estimate = await getTravelEstimate(targetAddress, targetDate);
+
+      if (estimate) {
+        console.log("Got estimate:", estimate);
+        patch.travelDistance = estimate.distanceValue; // Store in meters
+        patch.travelDuration = estimate.durationValue; // Store in seconds
+      }
     }
-
 
     const updated = await Event.findByIdAndUpdate(req.params.id, patch, {
       new: true,
@@ -674,18 +692,18 @@ exports.updateIceExpenses = async (req, res, next) => {
     const { id } = req.params;
     const { amount } = req.body;
 
-    if (amount === undefined ) {
+    if (amount === undefined) {
       return res.status(400).json({ error: "Invalid amount" });
     }
     let calculatedAmount;
     try {
       calculatedAmount = calculatePrice(amount);
-      } catch (priceError) {
-        return res.status(400).json({
-          error: priceError.message,
-          field: "price"
-        });
-      }
+    } catch (priceError) {
+      return res.status(400).json({
+        error: priceError.message,
+        field: "price",
+      });
+    }
 
     // Update EventActual, not Event
     const eventActual = await EventActual.findOneAndUpdate(
@@ -733,6 +751,249 @@ exports.ListofClosedEventsDates = async (req, res, next) => {
     );
     const closedDates = closedEvents.map((ev) => ev.eventDate);
     res.json(closedDates);
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.BuildPredictiveConsumptionDataTable = async (req, res, next) => {
+  try {
+    const targetEventId = req.params.id;
+
+    // 1. Fetch the target event to get its type and guest count
+    const targetEvent = await Event.findById(targetEventId).populate("status");
+    if (!targetEvent) {
+      return res.status(404).json({ error: "Event not found" });
+    }
+    if (!targetEvent.guestCount || targetEvent.guestCount <= 0) {
+      return res
+        .status(400)
+        .json({ error: "Event has no guests, cannot calculate prediction" });
+    }
+
+    const targetEventTypeId = targetEvent.eventType;
+    const targetGuestCount = targetEvent.guestCount;
+    const targetEventDayofTheWeek = targetEvent.eventDate.getDay(); // 0 (Sun) to 6 (Sat)
+
+    // 2. Find similar past events (same event type, finished statuses)
+    // Assuming "DONE" is the code for finished events
+    const closedStatuses = await EventStatus.find({ code: { $in: ["DONE"] } });
+    const closedStatusIds = closedStatuses.map((s) => s._id);
+
+    let pastEvents;
+    if (targetEventDayofTheWeek === 5 || targetEventDayofTheWeek === 6) {
+      // If target event is on Friday or Saturday, we look for past events of the same type that were also on Friday or Saturday
+      pastEvents = await Event.find({
+        eventType: targetEventTypeId,
+        status: { $in: closedStatusIds },
+        guestCount: { $gt: 0 }, // Only events that actually had guests
+        $expr: {
+          $in: [{ $dayOfWeek: "$eventDate" }, [6, 7]], // MongoDB dayOfWeek: 1 (Sun) to 7 (Sat)
+        },
+      }).select("_id guestCount");
+    } else {
+      pastEvents = await Event.find({
+        eventType: targetEventTypeId,
+        status: { $in: closedStatusIds },
+        guestCount: { $gt: 0 }, // Only events that actually had guests
+      }).select("_id guestCount");
+    }
+
+    if (pastEvents.length === 0) {
+      return res.status(404).json({
+        message: "לא נמצאו מספיק אירועי עבר מאותו סוג כדי לבצע סטטיסטיקה אמינה",
+      });
+    }
+
+    const pastEventIds = pastEvents.map((e) => e._id);
+
+    // 3. Fetch all alcohol expenses for these past events
+    const expenses = await AlcoholExpense.find({
+      event: { $in: pastEventIds },
+    }).populate("product");
+
+    // 4. Aggregate consumption per category per event
+    // Structure: categoryData[categoryName][eventId] = total ml consumed
+    const categoryData = {};
+
+    expenses.forEach((exp) => {
+      // Skip if product was deleted or no bottles were used
+      if (!exp.product || !exp.bottlesUsed) return;
+
+      const category = exp.product.category || "אחר";
+      const volume = exp.product.volumeMl || 0;
+      const mlConsumed = exp.bottlesUsed * volume;
+      const eventIdStr = exp.event.toString();
+
+      if (!categoryData[category]) {
+        categoryData[category] = {};
+      }
+      if (!categoryData[category][eventIdStr]) {
+        categoryData[category][eventIdStr] = 0;
+      }
+      categoryData[category][eventIdStr] += mlConsumed;
+    });
+
+    // 5. Calculate statistics per category
+    const results = [];
+
+    // Create a lookup for guest count by event ID for quick math
+    const eventGuestCounts = {};
+    pastEvents.forEach((e) => {
+      eventGuestCounts[e._id.toString()] = e.guestCount;
+    });
+
+    for (const [category, eventsConsumption] of Object.entries(categoryData)) {
+      const consumptionPerHeadList = [];
+
+      // We look at ALL past events of this type.
+      // If a category wasn't consumed in a specific event, it counts as 0.
+      pastEvents.forEach((e) => {
+        const eventIdStr = e._id.toString();
+        const mlConsumed = eventsConsumption[eventIdStr] || 0;
+        const guests = eventGuestCounts[eventIdStr];
+        consumptionPerHeadList.push(mlConsumed / guests);
+      });
+
+      // Calculate Average
+      const sum = consumptionPerHeadList.reduce((acc, val) => acc + val, 0);
+      const averageMlPerHead = sum / consumptionPerHeadList.length;
+
+      // Calculate Standard Deviation
+      const variance =
+        consumptionPerHeadList.reduce(
+          (acc, val) => acc + Math.pow(val - averageMlPerHead, 2),
+          0,
+        ) / consumptionPerHeadList.length;
+      const stdDev = Math.sqrt(variance);
+
+      // Weighted Average (Average + 1 Standard Deviation as a safety factor)
+      const weightedAveragePerHead = averageMlPerHead + stdDev;
+
+      // Projected totals for the target event
+      const projectedTotalMl = weightedAveragePerHead * targetGuestCount;
+      const projectedLiters = projectedTotalMl / 1000;
+
+      // Calculate required bottles (always rounding UP)
+      const bottles1000 = Math.ceil(projectedTotalMl / 1000);
+      const bottles750 = Math.ceil(projectedTotalMl / 750);
+      const bottles700 = Math.ceil(projectedTotalMl / 700);
+
+      results.push({
+        category,
+        averageMlPerHead: parseFloat(averageMlPerHead.toFixed(2)),
+        stdDev: parseFloat(stdDev.toFixed(2)),
+        weightedAveragePerHead: parseFloat(weightedAveragePerHead.toFixed(2)),
+        projectedLiters: parseFloat(projectedLiters.toFixed(2)),
+        bottles1000,
+        bottles750,
+        bottles700,
+      });
+    }
+
+    // Sort the results by the highest projected liters needed
+    results.sort((a, b) => a.category.localeCompare(b.category));
+
+    // Return the final data payload to the frontend
+    return res.json({
+      targetEventId,
+      targetGuestCount,
+      basedOnEventsCount: pastEvents.length,
+      predictions: results,
+    });
+  } catch (error) {
+    console.error("Error in BuildPredictiveConsumptionDataTable:", error);
+    next(error);
+  }
+};
+
+exports.getRangePredictionTable = async (req, res, next) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: "Missing start or end date" });
+    }
+
+    // 1. Find all closed/approved events in the date range
+    const activeStatuses = await EventStatus.find({
+      code: { $in: ["CLOSED"] },
+    });
+
+    const upcomingEvents = await Event.find({
+      eventDate: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate),
+      },
+      status: { $in: activeStatuses.map((s) => s._id) },
+      guestCount: { $gt: 0 },
+    });
+
+    if (upcomingEvents.length === 0) {
+      return res.json({ message: "No events found in range", predictions: [] });
+    }
+
+    // Object to accumulate the sums
+    // Structure: { 'Vodka': { sumMeans: 0, sumVariances: 0 } }
+    const aggregation = {};
+
+    // 2. Loop through each event in the range
+    for (const event of upcomingEvents) {
+      // Get per-head statistics for this specific event type
+      const predictionData = await calculateCategoryStats(event.eventType);
+
+      if (!predictionData || !predictionData.stats) continue;
+
+      for (const [category, stat] of Object.entries(predictionData.stats)) {
+        if (!aggregation[category]) {
+          aggregation[category] = { sumMeans: 0, sumVariances: 0 };
+        }
+
+        // a. Calculate the expected mean for this specific event
+        const eventMeanTotal = stat.averagePerHead * event.guestCount;
+
+        // b. Calculate the standard deviation for the specific event
+        const eventStdDevTotal = stat.stdDevPerHead * event.guestCount;
+
+        // c. Smart aggregation (Risk Pooling):
+        // Add the means normally
+        aggregation[category].sumMeans += eventMeanTotal;
+
+        // Square the standard deviations (variance) and sum them up
+        aggregation[category].sumVariances += Math.pow(eventStdDevTotal, 2);
+      }
+    }
+
+    // 3. Build the final summary table
+    const finalTable = [];
+
+    for (const [category, data] of Object.entries(aggregation)) {
+      const totalMean = data.sumMeans;
+
+      // The magic happens here: square root of the sum of variances = pooled standard deviation
+      const pooledStdDev = Math.sqrt(data.sumVariances);
+
+      // Safety margin: total mean + pooled standard deviation
+      const totalSafeAmount = totalMean + pooledStdDev;
+
+      finalTable.push({
+        category,
+        totalMeanMl: Math.round(totalMean),
+        pooledStdDevMl: Math.round(pooledStdDev),
+        recommendedTotalMl: Math.round(totalSafeAmount),
+        bottles1000: Math.ceil(totalSafeAmount / 1000),
+        bottles700: Math.ceil(totalSafeAmount / 700),
+      });
+    }
+
+    // Sort by category (alphabetically)
+    finalTable.sort((a, b) => a.category.localeCompare(b.category));
+
+    res.json({
+      range: { startDate, endDate },
+      eventsCount: upcomingEvents.length,
+      prediction: finalTable,
+    });
   } catch (err) {
     next(err);
   }
