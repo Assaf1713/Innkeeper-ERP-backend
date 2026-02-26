@@ -16,7 +16,8 @@ exports.getPlannedShiftsByEventId = async (req, res) => {
 
   try {
     const plannedShifts = await PlannedShift.find({ event: eventId })
-      .populate("employee") // מחזיר את אובייקט העובד
+      .populate({ path: "employee", select: "name" })
+      .populate({ path: "event", select: "eventDate address" })
       .sort({ startTime: 1 });
 
     return res.json({ plannedShifts });
@@ -49,7 +50,9 @@ exports.createPlannedShift = async (req, res) => {
       notes: notes ?? "",
     });
 
-    const populated = await PlannedShift.findById(created._id).populate("employee");
+    const populated = await PlannedShift.findById(created._id)
+      .populate({ path: "employee", select: "name" })
+      .populate({ path: "event", select: "eventDate address" });
     res.status(201).json({ plannedShift: populated });
   } catch (error) {
     console.error("Error creating planned shift:", error);
@@ -82,7 +85,8 @@ if (endTime !== undefined) update.endTime = endTime;
     const updated = await PlannedShift.findByIdAndUpdate(id, update, {
       new: true,
       runValidators: true,
-    }).populate("employee");
+    }).populate({ path: "employee", select: "name" })
+      .populate({ path: "event", select: "eventDate address" });
 
     res.json({ plannedShift: updated });
   } catch (error) {

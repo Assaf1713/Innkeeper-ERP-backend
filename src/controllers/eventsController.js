@@ -12,6 +12,7 @@ const CustomerController = require("./customerController");
 const { upsertBrevoContact } = require("../services/brevoAddCustomer");
 const { getTravelEstimate } = require("../services/googleMapsService");
 const { calculateCategoryStats } = require("../services/predictionService");
+const {getEventTypesDict} = require("../services/getEventTypesDict");
 
 const calculatePrice = (priceInput) => {
   // Handle null/undefined early
@@ -761,7 +762,7 @@ exports.BuildPredictiveConsumptionDataTable = async (req, res, next) => {
     const targetEventId = req.params.id;
 
     // 1. Fetch the target event to get its type and guest count
-    const targetEvent = await Event.findById(targetEventId).populate("status");
+    const targetEvent = await Event.findById(targetEventId).populate("status eventType", "code label");
     if (!targetEvent) {
       return res.status(404).json({ error: "Event not found" });
     }
@@ -771,7 +772,19 @@ exports.BuildPredictiveConsumptionDataTable = async (req, res, next) => {
         .json({ error: "Event has no guests, cannot calculate prediction" });
     }
 
-    const targetEventTypeId = targetEvent.eventType;
+    const EventTypesDict = await getEventTypesDict();
+    const targetEventTypeId = targetEvent.eventType._id;
+    const targetEventTypeCode = targetEvent.eventType.code;
+    const targetEventTypeRelatedEventTypes = [targetEventTypeId];
+
+    if (targetEventTypeCode === "PRIVATE_FULL_BAR" && EventTypesDict?.CORP_PARTY) {
+      targetEventTypeRelatedEventTypes.push(EventTypesDict.CORP_PARTY);
+    }
+
+    if (targetEventTypeCode === "CORP_PARTY" && EventTypesDict?.PRIVATE_FULL_BAR) {
+      targetEventTypeRelatedEventTypes.push(EventTypesDict.PRIVATE_FULL_BAR);
+    }
+
     const targetGuestCount = targetEvent.guestCount;
     const targetEventDayofTheWeek = targetEvent.eventDate.getDay(); // 0 (Sun) to 6 (Sat)
 
@@ -784,7 +797,7 @@ exports.BuildPredictiveConsumptionDataTable = async (req, res, next) => {
     if (targetEventDayofTheWeek === 5 || targetEventDayofTheWeek === 6) {
       // If target event is on Friday or Saturday, we look for past events of the same type that were also on Friday or Saturday
       pastEvents = await Event.find({
-        eventType: targetEventTypeId,
+        eventType: { $in: targetEventTypeRelatedEventTypes },
         status: { $in: closedStatusIds },
         guestCount: { $gt: 0 }, // Only events that actually had guests
         $expr: {
@@ -793,7 +806,7 @@ exports.BuildPredictiveConsumptionDataTable = async (req, res, next) => {
       }).select("_id guestCount");
     } else {
       pastEvents = await Event.find({
-        eventType: targetEventTypeId,
+        eventType: { $in: targetEventTypeRelatedEventTypes },
         status: { $in: closedStatusIds },
         guestCount: { $gt: 0 }, // Only events that actually had guests
       }).select("_id guestCount");
