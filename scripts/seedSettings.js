@@ -147,6 +147,17 @@ const defaultSettings = [
     value: true,
     description: "האם לעדכן אוטומטית עלויות אירוע בסגירה (Event Actuals)",
   },
+  {
+    key: "autoWhatsAppNotificationsOnShiftAssignment",
+    value: false,
+    description: "הפעלת שליחת הודעות WhatsApp אוטומטית בעת שיבוץ משמרות",
+  },
+  {
+    key: "autoWhatsAppNotificationThreeDaysBeforeEvent",
+    value: false,
+    description: "הפעלת שליחת הודעות WhatsApp אוטומטית 3 ימים לפני האירוע",
+  },
+
 ];
 
 (async () => {

@@ -249,7 +249,7 @@ exports.getEmployeePlannedShifts = async (req, res) => {
         path: "event",
         select: "eventDate eventNumber address",
       })
-      .sort({ createdAt: -1 })
+      .sort({ "event.eventDate": 1, startTime: 1 })
       .lean();
 
     // Filter for future events only

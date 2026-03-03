@@ -4,6 +4,9 @@ const PlannedShift = require('../models/PlannedShift');
 const mongoose = require('mongoose');
 const Employee = require('../models/Employee');
 const Event = require('../models/Events');
+const { sendShiftAssignmentWhatsApp } = require('../services/NewShiftWhatsAppAlert');
+const {testHelloWorld} = require('../services/TestWhatsApp');
+const { getSettingValue } = require('../services/settingsService');
 
 
 // GET /api/events/:eventId/planned-shifts
@@ -16,7 +19,7 @@ exports.getPlannedShiftsByEventId = async (req, res) => {
 
   try {
     const plannedShifts = await PlannedShift.find({ event: eventId })
-      .populate({ path: "employee", select: "name" })
+      .populate({ path: "employee", select: "name phone" })
       .populate({ path: "event", select: "eventDate address" })
       .sort({ startTime: 1 });
 
@@ -51,9 +54,20 @@ exports.createPlannedShift = async (req, res) => {
     });
 
     const populated = await PlannedShift.findById(created._id)
-      .populate({ path: "employee", select: "name" })
+      .populate({ path: "employee", select: "name phone" })
       .populate({ path: "event", select: "eventDate address" });
     res.status(201).json({ plannedShift: populated });
+
+    const shouldSendWhatsApp = await getSettingValue(
+      'autoWhatsAppNotificationsOnShiftAssignment',
+      false
+    );
+
+    if (shouldSendWhatsApp) {
+      sendShiftAssignmentWhatsApp(populated).catch(err => {
+        console.error("Error sending WhatsApp notification:", err);
+      });
+    }
   } catch (error) {
     console.error("Error creating planned shift:", error);
     res.status(500).json({ error: "Internal server error" });
