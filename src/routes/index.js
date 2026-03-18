@@ -37,6 +37,10 @@ router.use('/general-expense-types', require('./generalExpensesTypeRoutes'));
 router.use('/alcohol-expenses', require('./alcoholExpensesRoutes'));
 // router for inventory products
 router.use('/inventory-products', require('./InventoryProductsRoutes'));
+// router for suppliers
+router.use('/suppliers', require('./supplierRoutes'));
+// router for purchase orders
+router.use('/purchase-orders', require('./purchaseOrderRoutes'));
 // router for leads
 router.use('/leads', require('./leadsRoutes'));
 // router for unavailable dates

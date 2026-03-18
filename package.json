@@ -17,7 +17,9 @@
     "fix:expenseCategories": "node scripts/fixExpenseCategories.js",
     "migrate:rent": "node src/migrations/updateRentCategory.js",
     "seed:settings": "node scripts/seedSettings.js",
-    "seed:admin": "node scripts/seedSuperAdmin.js"
+    "seed:admin": "node scripts/seedSuperAdmin.js",
+    "seed:suppliers" : "node scripts/seedSuppliers.js",
+    "seed:products" : "node scripts/seedProducts.js"
   },
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.2",

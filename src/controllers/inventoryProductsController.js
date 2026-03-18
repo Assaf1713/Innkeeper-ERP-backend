@@ -2,6 +2,7 @@
 const { getAllCategories } = require("../constants/InventoryProductsCategory");
 const InventoryProduct = require("../models/InventoryProduct");
 const Settings = require("../models/Settings");
+const Suppliers = require("../models/Supplier");
 
 /**
  * Small helper to generate a stable code when the user didn't provide one.
@@ -22,7 +23,7 @@ const updateNetPrice = (price) => {
 // GET /api/lookups/inventory-products
 exports.listInventoryProducts = async (req, res, next) => {
   try {
-    const items = await InventoryProduct.find()
+    const items = await InventoryProduct.find().populate("supplier", "name")
       .sort({isActive: -1, label: 1 }); // nice UX for dropdown
     for (const item of items) {
       if (item.price && !item.netPrice) {
@@ -52,14 +53,19 @@ exports.createInventoryProduct = async (req, res, next) => {
       volumeMl = 0,
       price = 0,
       netPrice = 0,
+      notes="",
     } = req.body;
 
     if (!label || !String(label).trim()) {
       return res.status(400).json({ error: "label is required" });
     }
-
     const finalCode = (code && String(code).trim()) || slugify(label);
-
+    if (supplier) {
+      const supplierExists = await Suppliers.findById(supplier);
+      if (!supplierExists) {
+        return res.status(400).json({ error: "Supplier not found" });
+      }
+    }
     const created = await InventoryProduct.create({
       code: finalCode,
       label: String(label).trim(),
@@ -69,6 +75,7 @@ exports.createInventoryProduct = async (req, res, next) => {
       volumeMl: Number(volumeMl) || 0,
       price: price ? Number(price) || 0 : Number(netPrice * 1.18).toFixed(2),
       netPrice: netPrice? Number(netPrice) || 0 : Number(price / 1.18).toFixed(2),
+      notes: String(notes).trim(),
       isActive: true,
     });
 
@@ -95,6 +102,7 @@ exports.updateInventoryProduct = async (req, res, next) => {
       "volumeMl",
       "price",
       "netPrice",
+      "notes",
       "isActive",
     ];
 
@@ -102,7 +110,12 @@ exports.updateInventoryProduct = async (req, res, next) => {
     for (const k of allowed) {
       if (req.body[k] !== undefined) patch[k] = req.body[k];
     }
-
+    if (patch.supplier) {
+      const supplierExists = await Suppliers.findById(patch.supplier);
+      if (!supplierExists) {
+        return res.status(400).json({ error: "Supplier not found" });
+      }
+    }
     // normalize numeric fields
     if (patch.volumeMl !== undefined) patch.volumeMl = Number(patch.volumeMl) || 0;
     if( patch.price !== undefined && patch.netPrice !== undefined) {
