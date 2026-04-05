@@ -11,8 +11,8 @@ router.get('/', supplierController.getSuppliers);
 router.get('/:id', supplierController.getSupplierById);
 
 // Restrict creation and updates to ADMIN and SUPER_ADMIN
-router.post('/', requireRoles('ADMIN', 'SUPER_ADMIN'), supplierController.createSupplier);
-router.put('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), supplierController.updateSupplier);
-router.delete('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), supplierController.deleteSupplier);
-router.post('/:id/restore', requireRoles('ADMIN', 'SUPER_ADMIN'), supplierController.reactivateSupplier);
+router.post('/', requireRoles('SUPER_ADMIN'), supplierController.createSupplier);
+router.put('/:id', requireRoles('SUPER_ADMIN'), supplierController.updateSupplier);
+router.delete('/:id', requireRoles('SUPER_ADMIN'), supplierController.deleteSupplier);
+router.post('/:id/restore', requireRoles('SUPER_ADMIN'), supplierController.reactivateSupplier);
 module.exports = router;

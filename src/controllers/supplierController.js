@@ -1,5 +1,30 @@
 const Supplier = require("../models/Supplier");
 
+const formatPhone = (phone) => {
+  if (!phone) return "";
+
+  // Remove all non-digit characters
+  const digits = phone.replace(/\D/g, "");
+
+  // If starts with 0, replace with +972 (Israel country code)
+  if (digits.startsWith("0")) {
+    return `+972${digits.substring(1)}`;
+  }
+
+  // If already starts with country code
+  if (digits.startsWith("972")) {
+    return `+${digits}`;
+  }
+
+  // If already has +, return as is
+  if (phone.startsWith("+")) {
+    return phone;
+  }
+
+  // Default: assume Israel number
+  return `+972${digits}`;
+};
+
 // Get all suppliers
 exports.getSuppliers = async (req, res) => {
   try {
@@ -30,7 +55,11 @@ exports.getSupplierById = async (req, res) => {
 // Create a new supplier
 exports.createSupplier = async (req, res) => {
   try {
-    const newSupplier = new Supplier(req.body);
+    
+    const newSupplier = new Supplier({
+      ...req.body,
+      phone: formatPhone(req.body.phone),
+    });
     const savedSupplier = await newSupplier.save();
     res.status(201).json(savedSupplier);
   } catch (error) {
@@ -45,7 +74,7 @@ exports.updateSupplier = async (req, res) => {
   try {
     const updatedSupplier = await Supplier.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      { ...req.body, phone: formatPhone(req.body.phone) },
       { new: true, runValidators: true },
     );
     if (!updatedSupplier) {

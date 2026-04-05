@@ -14,5 +14,12 @@ router.get('/:id', purchaseOrderController.getOrderById);
 router.post('/', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.createOrder);
 router.put('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.updateOrder);
 router.patch('/:id/status', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.updateOrderStatus);
+router.patch('/:id/actual-price', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.updateActualPrice);
+// Add / Remove / Update items in an order
+router.post('/:id/items', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.addOrderItem);
+router.patch('/:id/items/:itemId', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.updateOrderItem);
+router.delete('/:id/items/:itemId', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.removeOrderItem);
+router.delete('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.deleteOrder);
+router.delete('/:id/remove-related-event', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.removeRelatedEvent);
 
 module.exports = router;

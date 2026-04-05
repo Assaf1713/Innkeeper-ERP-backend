@@ -37,10 +37,19 @@ const purchaseOrderSchema = new mongoose.Schema(
       type: Number,
       unique: true,
     },
+    orderDate: {
+      type: Date,
+      default: Date.now,
+    },
     supplier: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Supplier',
       required: true,
+    },
+    orderType:{
+      type:String,
+      enum: ['BUY', 'RETURN', 'QUOTE'],
+      default: 'BUY',
     },
     status: {
       type: String,
@@ -57,6 +66,11 @@ const purchaseOrderSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    ActualPrice : { // to compare actual amount paid to the caculated price from the items array
+      type : Number,
+      default : 0,
+      min : 0 ,
+    },
     notes: {
       type: String,
       trim: true,
@@ -64,6 +78,10 @@ const purchaseOrderSchema = new mongoose.Schema(
     relatedEvent: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Event',
+    },
+    relatedExpense: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Expense',
     },
   },
   { timestamps: true }

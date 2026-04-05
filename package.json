@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "start:dev": "concurrently \"npm run dev\" \"npm --prefix ../client run dev\"",
     "seed:lookups": "node scripts/seedlookup.js",
     "seed:expenses": "node scripts/seedExpenses.js",
     "seed:customers": "node scripts/seedCustomers.js",
@@ -18,8 +19,8 @@
     "migrate:rent": "node src/migrations/updateRentCategory.js",
     "seed:settings": "node scripts/seedSettings.js",
     "seed:admin": "node scripts/seedSuperAdmin.js",
-    "seed:suppliers" : "node scripts/seedSuppliers.js",
-    "seed:products" : "node scripts/seedProducts.js"
+    "seed:suppliers": "node scripts/seedSuppliers.js",
+    "seed:products": "node scripts/seedProducts.js"
   },
   "dependencies": {
     "@googlemaps/google-maps-services-js": "^3.4.2",
@@ -34,6 +35,7 @@
     "multer": "^2.0.2"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "localtunnel": "^2.0.2",
     "ngrok": "^5.0.0-beta.2",
     "nodemon": "*"
