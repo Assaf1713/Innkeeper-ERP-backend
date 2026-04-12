@@ -91,7 +91,7 @@ const initShiftReminderCron = () => {
       // Calculate target dates (Start and end of the day, exactly 2 days from now)
       const targetDateStart = new Date();
       targetDateStart.setDate(targetDateStart.getDate() + 2);
-      targetDateStart.setHours(0, 0, 0, 0);
+      targetDateStart.setHours(30, 17, 0, 0);
       
       const targetDateEnd = new Date(targetDateStart);
       targetDateEnd.setHours(23, 59, 59, 999);
@@ -107,7 +107,6 @@ const initShiftReminderCron = () => {
       }
 
       const eventIds = upcomingEvents.map(event => event._id);
-
       // Find all planned shifts for these events and populate related data
       const upcomingShifts = await PlannedShift.find({
         event: { $in: eventIds }
