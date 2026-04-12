@@ -52,8 +52,8 @@ const sendShiftReminderWhatsApp = async (shift) => {
             parameters: [
               { type: "text", text: employeeName },
               { type: "text", text: dateOfEvent },
-              { type: "text", text: startTime },
-              { type: "text", text: location }
+              { type: "text", text: location },
+              { type: "text", text: startTime }
             ]
           }
         ]
@@ -84,7 +84,7 @@ const sendShiftReminderWhatsApp = async (shift) => {
 // Main function to initialize the cron job
 const initShiftReminderCron = () => {
   // Schedule task to run every day at 20:00 
-  cron.schedule('42 17 * * *', async () => {
+  cron.schedule('0 20 * * *', async () => {
     try {
       console.log('Running daily shift reminder job...');
       
