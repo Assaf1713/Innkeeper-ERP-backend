@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
 const path = require('path');
+const { initShiftReminderCron } = require('./services/shiftReminderService');
 
 
 const { connectDB } = require('./config/db');
@@ -41,3 +42,5 @@ app.listen(PORT, () => {
 console.log(`🚀 Server listening on http://localhost:${PORT}`);
 });
 });
+
+initShiftReminderCron();

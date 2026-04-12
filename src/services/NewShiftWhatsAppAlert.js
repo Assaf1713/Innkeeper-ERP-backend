@@ -1,3 +1,5 @@
+const Settings = require("../models/Settings");
+
 // Function requires fetch (available natively in Node.js 18+) or axios
 const sendShiftAssignmentWhatsApp = async (shift) => {
   try {
@@ -12,7 +14,7 @@ const sendShiftAssignmentWhatsApp = async (shift) => {
     const endTime = shift.endTime || "TBD";
     
     const location = shift.role === "manager"
-      ? "מחסן ציוד"
+      ? "מחסן (אפעל 11 פתח תקווה)"
       : shift.event?.address || "יימסר בהמשך";
       
     // Meta API will fail if a variable is completely empty, so we provide a default text

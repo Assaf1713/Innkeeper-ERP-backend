@@ -197,13 +197,13 @@ exports.updateOrderStatus = async (req, res) => {
   }
 };
 
-// Add an item to an order
+// Add an item to an order | Can not be added to orders that are not in DRAFT status to prevent changes to sent or received orders - if needed, the order should be duplicated and edited as a new order
 exports.addOrderItem = async (req, res) => {
   try {
     // check for existing order
     const order = await PurchaseOrder.findById(req.params.id);
-    if (!order) {
-      return res.status(400).json({ message: "Order not found" });
+    if (!order || order.status !== "DRAFT") {
+      return res.status(400).json({ message: "Order not found or cannot be updated" });
     }
     // check for existing product
     const { product, quantity, notes } = req.body;
@@ -227,6 +227,7 @@ exports.addOrderItem = async (req, res) => {
     order.totalAmount += totalPrice;
     await order.save();
     res.status(200).json(order);
+    
   } catch (error) {
     res
       .status(400)
@@ -234,12 +235,12 @@ exports.addOrderItem = async (req, res) => {
   }
 };
 
-// Remove an item from an order
+// Remove an item from an order | Can not be removed from orders that are not in DRAFT status to prevent changes to sent or received orders - if needed, the order should be duplicated and edited as a new order
 exports.removeOrderItem = async (req, res) => {
   try {
     const order = await PurchaseOrder.findById(req.params.id);
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+    if (!order || order.status !== "DRAFT") {
+      return res.status(404).json({ message: "Order not found or cannot be updated" });
     }
     const item = order.items.id(req.params.itemId);
     if (!item) {
@@ -256,12 +257,12 @@ exports.removeOrderItem = async (req, res) => {
   }
 };
 
-// Update an item's quantity in an order
+// Update an item's quantity in an order | Can not be updated in orders that are not in DRAFT status to prevent changes to sent or received orders - if needed, the order should be duplicated and edited as a new order
 exports.updateOrderItem = async (req, res) => {
   try {
     const order = await PurchaseOrder.findById(req.params.id);
-    if (!order) {
-      return res.status(404).json({ message: "Order not found" });
+    if (!order || order.status !== "DRAFT") {
+      return res.status(404).json({ message: "Order not found or cannot be updated" });
     }
     const item = order.items.id(req.params.itemId);
     if (!item) {
