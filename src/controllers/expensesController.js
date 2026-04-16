@@ -1,4 +1,5 @@
 const Expense = require("../models/Expenses");
+const PurchaseOrder = require("../models/PurchaseOrder");
 const { getAllCategories } = require("../constants/expenseCategories");
 
 
@@ -130,6 +131,12 @@ exports.deleteExpense = async (req, res, next) => {
     if (!expense) {
       return res.status(404).json({ error: "הוצאה לא נמצאה" });
     }
+
+    // Clear orphan reference in any PurchaseOrder that pointed to this expense
+    await PurchaseOrder.updateMany(
+      { relatedExpense: req.params.id },
+      { $unset: { relatedExpense: "" } },
+    );
 
     return res.json({ message: "הוצאה נמחקה בהצלחה", expense });
   } catch (err) {

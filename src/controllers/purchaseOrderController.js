@@ -3,15 +3,24 @@ const Event = require("../models/Events");
 const Products = require("../models/InventoryProduct");
 const Expenses = require("../models/Expenses");
 
-// util function to process order after it's marked as SENT - create expense record and (in the future) update inventory quantities 
-const postOrderProcessing = async (order) =>  {
+// util function to process order after it's marked as SENT - create expense record and (in the future) update inventory quantities
+const postOrderProcessing = async (order, TotalAmountPaid) => {
+  // check if order already has a related expense record to prevent duplicates in case of multiple status updates - if it exists, we will update the existing record instead of creating a new one
+  if (order.relatedExpense) {
+    console.log("Updating existing expense record for order:", order._id);
+    await Expenses.findByIdAndUpdate(order.relatedExpense, {
+      price: TotalAmountPaid, // in case of partial payment, we want to update the expense record to reflect the actual amount paid
+    });
+    return;
+  }
+
   try {
     const expenseData = {
       name: "מלאי",
       supplier: order.supplier?.name || null,
-      category: "INVENTORY",
+      category: "מלאי",
       date: order.orderDate || new Date(),
-      price: order.totalAmount,
+      price: TotalAmountPaid, // in case of partial payment, we want to update the expense record to reflect the actual amount paid
       notes: `הזמנה #${order.orderNumber}`,
     };
     const expenseRecord = new Expenses(expenseData);
@@ -22,16 +31,24 @@ const postOrderProcessing = async (order) =>  {
   } catch (error) {
     console.error("Error creating expense record for order:", error);
   }
-}
+};
 // util function to process return orders after they're marked as SENT - create negative expense record and (in the future) update inventory quantities
-const postReturnProcessing = async (order) => {
+const postReturnProcessing = async (order, TotalAmountPaid) => {
+  // check if order already has a related expense record to prevent duplicates in case of multiple status updates - if it exists, we will update the existing record instead of creating a new one
+  if (order.relatedExpense) {
+    const expensePrice = -Math.abs(TotalAmountPaid);
+    await Expenses.findByIdAndUpdate(order.relatedExpense, {
+      price: expensePrice,
+    });
+    return;
+  }
   try {
     const expenseData = {
       name: "החזרת מלאי",
       supplier: order.supplier?.name || null,
       category: "INVENTORY",
       date: order.orderDate || new Date(),
-      price: -Math.abs(order.totalAmount), // negative value to reflect return
+      price: -Math.abs(TotalAmountPaid), // negative value to reflect return
       notes: `החזרת מלאי - הזמנה #${order.orderNumber}`,
     };
     const expenseRecord = new Expenses(expenseData);
@@ -39,11 +56,10 @@ const postReturnProcessing = async (order) => {
     order.relatedExpense = expenseRecord._id;
     await order.save();
     console.log("Expense record created for return order:", order._id);
-  }
-  catch (error) {
+  } catch (error) {
     console.error("Error creating expense record for return order:", error);
   }
-}
+};
 // Get all purchase orders
 exports.getOrders = async (req, res) => {
   try {
@@ -51,7 +67,7 @@ exports.getOrders = async (req, res) => {
     const orders = await PurchaseOrder.find()
       .populate("supplier", "name contactName phone")
       .populate("items.product", "code label superCategory netPrice notes")
-      .populate("relatedEvent", "eventNumber eventDate address StartTime")
+      .populate("relatedEvent", "eventNumber eventDate address startTime")
       .sort({ createdAt: -1 });
     res.status(200).json(orders);
   } catch (error) {
@@ -66,7 +82,11 @@ exports.getOrderById = async (req, res) => {
   try {
     const order = await PurchaseOrder.findById(req.params.id)
       .populate("supplier", "name contactName phone")
-      .populate("items.product", "code label superCategory netPrice notes");
+      .populate("items.product", "code label superCategory netPrice notes")
+      .populate(
+        "relatedEvent",
+        "eventNumber eventDate address startTime customerName status",
+      );
 
     if (!order) {
       return res.status(404).json({ message: "Order not found" });
@@ -101,7 +121,10 @@ exports.createOrder = async (req, res) => {
 
     const populatedOrder = await PurchaseOrder.findById(savedOrder._id)
       .populate("supplier", "name contactName phone")
-      .populate("relatedEvent", "eventNumber eventDate address StartTime");
+      .populate(
+        "relatedEvent",
+        "eventNumber eventDate address startTime customerName status",
+      );
 
     res.status(201).json(populatedOrder);
   } catch (error) {
@@ -145,12 +168,79 @@ exports.updateOrder = async (req, res) => {
   }
 };
 
+exports.setPayment = async (req, res) => {
+  try {
+    const { TotalAmountPaid, autoCreateExpense, resetPayment } = req.body;
+    const order = await PurchaseOrder.findById(req.params.id)
+      .populate("supplier", "name contactName phone")
+      .populate("items.product", "code label superCategory netPrice notes")
+      .populate("relatedEvent", "eventNumber eventDate address startTime");
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    // Reset payment — clear amount, delete related expense, revert status
+    if (resetPayment) {
+      if (order.relatedExpense) {
+        await Expenses.findByIdAndDelete(order.relatedExpense);
+        order.relatedExpense = null;
+      }
+      order.TotalAmountPaid = 0;
+      order.isPaid = false;
+      if (order.status === "COMPLETED") order.status = "SENT";
+      await order.save();
+      return res.status(200).json(order);
+    }
+
+    // Guard against overpayment
+    const TotalPaidSoFar = order.TotalAmountPaid || 0;
+    const remaining = order.ActualPrice - TotalPaidSoFar;
+    if (TotalAmountPaid > remaining) {
+      return res.status(400).json({
+        message: `סכום התשלום (${TotalAmountPaid}) חורג מהיתרה לתשלום (${remaining})`,
+      });
+    }
+
+    order.TotalAmountPaid = TotalPaidSoFar + TotalAmountPaid;
+    // If the total amount paid meets or exceeds the total amount of the order, we can consider it fully paid and update the status to COMPLETED
+    if (order.TotalAmountPaid >= order.ActualPrice) {
+      order.status = "COMPLETED";
+      order.isPaid = true;
+    }
+    await order.save();
+    if (autoCreateExpense && TotalAmountPaid > 0) {
+      if (order.orderType === "BUY") {
+        try {
+          await postOrderProcessing(order, order.TotalAmountPaid);
+        } catch (error) {
+          console.error("Error processing order after payment:", error);
+        }
+      } else if (order.orderType === "RETURN") {
+        try {
+          await postReturnProcessing(order, order.TotalAmountPaid);
+        } catch (error) {
+          console.error("Error processing return order after payment:", error);
+        }
+      }
+    }
+    res.status(200).json(order);
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: "Error setting payment", error: error.message });
+  }
+};
+
 // Delete an order
 exports.deleteOrder = async (req, res) => {
   try {
     const deletedOrder = await PurchaseOrder.findByIdAndDelete(req.params.id);
     if (!deletedOrder) {
       return res.status(404).json({ message: "Order not found" });
+    }
+    // If the deleted order has a related expense, we should also delete that to prevent orphan records
+    if (deletedOrder.relatedExpense) {
+      await Expenses.findByIdAndDelete(deletedOrder.relatedExpense);
     }
     res.status(200).json(deletedOrder);
   } catch (error) {
@@ -163,7 +253,7 @@ exports.deleteOrder = async (req, res) => {
 // Update order status specifically (e.g., DRAFT to SENT)
 exports.updateOrderStatus = async (req, res) => {
   try {
-    const { status, isPaid } = req.body;
+    const { status, isPaid, autoCreateExpense } = req.body;
 
     const updatedOrder = await PurchaseOrder.findByIdAndUpdate(
       req.params.id,
@@ -174,21 +264,7 @@ exports.updateOrderStatus = async (req, res) => {
     if (!updatedOrder) {
       return res.status(404).json({ message: "Order not found" });
     }
-    if (status === "SENT") {
-      if (updatedOrder.orderType === "BUY") {
-        try {
-          await postOrderProcessing(updatedOrder);
-        } catch (error) {
-          console.error("Error processing order:", error);
-        }
-      } else if (updatedOrder.orderType === "RETURN") {
-        try {
-          await postReturnProcessing(updatedOrder);
-        } catch (error) {
-          console.error("Error processing return order:", error);
-        }
-      }
-    }
+
     res.status(200).json(updatedOrder);
   } catch (error) {
     res
@@ -203,7 +279,9 @@ exports.addOrderItem = async (req, res) => {
     // check for existing order
     const order = await PurchaseOrder.findById(req.params.id);
     if (!order || order.status !== "DRAFT") {
-      return res.status(400).json({ message: "Order not found or cannot be updated" });
+      return res
+        .status(400)
+        .json({ message: "Order not found or cannot be updated" });
     }
     // check for existing product
     const { product, quantity, notes } = req.body;
@@ -211,23 +289,38 @@ exports.addOrderItem = async (req, res) => {
     if (!productDetails) {
       return res.status(400).json({ message: "Product not found" });
     }
-    // function logic
-    const productNameSnapshot = productDetails.label; // capture product name at time of order
-    const pricePerUnitSnapshot = productDetails.netPrice;
-    const totalPrice = pricePerUnitSnapshot * quantity;
-    const newItem = {
-      product,
-      quantity,
-      notes,
-      totalPrice,
-      productNameSnapshot,
-      pricePerUnitSnapshot,
-    };
-    order.items.push(newItem);
-    order.totalAmount += totalPrice;
+
+    // check if product already exists in the order — increase quantity instead of adding duplicate
+    const existingItem = order.items.find(
+      (item) => item.product?.toString() === product,
+    );
+
+    if (existingItem) {
+      order.totalAmount -= existingItem.totalPrice;
+      existingItem.quantity += quantity;
+      existingItem.totalPrice =
+        existingItem.pricePerUnitSnapshot * existingItem.quantity;
+      order.totalAmount += existingItem.totalPrice;
+      if (notes) existingItem.notes = notes;
+    } else {
+      // function logic
+      const productNameSnapshot = productDetails.label;
+      const pricePerUnitSnapshot = productDetails.netPrice;
+      const totalPrice = pricePerUnitSnapshot * quantity;
+      const newItem = {
+        product,
+        quantity,
+        notes,
+        totalPrice,
+        productNameSnapshot,
+        pricePerUnitSnapshot,
+      };
+      order.items.push(newItem);
+      order.totalAmount += totalPrice;
+    }
+
     await order.save();
     res.status(200).json(order);
-    
   } catch (error) {
     res
       .status(400)
@@ -240,7 +333,9 @@ exports.removeOrderItem = async (req, res) => {
   try {
     const order = await PurchaseOrder.findById(req.params.id);
     if (!order || order.status !== "DRAFT") {
-      return res.status(404).json({ message: "Order not found or cannot be updated" });
+      return res
+        .status(404)
+        .json({ message: "Order not found or cannot be updated" });
     }
     const item = order.items.id(req.params.itemId);
     if (!item) {
@@ -251,9 +346,10 @@ exports.removeOrderItem = async (req, res) => {
     await order.save();
     res.status(200).json(order);
   } catch (error) {
-    res
-      .status(400)
-      .json({ message: "Error removing item from order", error: error.message });
+    res.status(400).json({
+      message: "Error removing item from order",
+      error: error.message,
+    });
   }
 };
 
@@ -262,17 +358,22 @@ exports.updateOrderItem = async (req, res) => {
   try {
     const order = await PurchaseOrder.findById(req.params.id);
     if (!order || order.status !== "DRAFT") {
-      return res.status(404).json({ message: "Order not found or cannot be updated" });
+      return res
+        .status(404)
+        .json({ message: "Order not found or cannot be updated" });
     }
     const item = order.items.id(req.params.itemId);
     if (!item) {
       return res.status(404).json({ message: "Item not found in order" });
     }
-    const { quantity } = req.body;
-    order.totalAmount -= item.totalPrice;
-    item.quantity = quantity;
-    item.totalPrice = item.pricePerUnitSnapshot * quantity;
-    order.totalAmount += item.totalPrice;
+    const { quantity, notes } = req.body;
+    if (quantity != null) {
+      order.totalAmount -= item.totalPrice;
+      item.quantity = quantity;
+      item.totalPrice = item.pricePerUnitSnapshot * quantity;
+      order.totalAmount += item.totalPrice;
+    }
+    if (notes != null) item.notes = notes;
     await order.save();
     res.status(200).json(order);
   } catch (error) {
@@ -293,7 +394,9 @@ exports.removeRelatedEvent = async (req, res) => {
     await order.save();
     res.status(200).json(order);
   } catch (error) {
-    res.status(400).json({ message: "Error removing related event", error: error.message });
+    res
+      .status(400)
+      .json({ message: "Error removing related event", error: error.message });
   }
 };
 
@@ -306,11 +409,9 @@ exports.updateActualPrice = async (req, res) => {
       return res.status(404).json({ message: "Order not found" });
     }
     order.ActualPrice = ActualPrice;
+    order.status = ActualPrice > 0 ? "SENT" : order.status; // if actual price is set to more than 0, we can assume the order has been sent to the supplier
     await order.save();
-    if (order.relatedExpense) {
-      const expensePrice = order.orderType === "RETURN" ? -Math.abs(ActualPrice) : ActualPrice;
-      await Expenses.findByIdAndUpdate(order.relatedExpense, { price: expensePrice });
-    }
+    console.log(order);
     res.status(200).json(order);
   } catch (error) {
     res
@@ -318,4 +419,3 @@ exports.updateActualPrice = async (req, res) => {
       .json({ message: "Error updating actual price", error: error.message });
   }
 };
-

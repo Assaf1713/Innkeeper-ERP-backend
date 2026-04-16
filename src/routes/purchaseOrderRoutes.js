@@ -15,6 +15,7 @@ router.post('/', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.c
 router.put('/:id', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.updateOrder);
 router.patch('/:id/status', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.updateOrderStatus);
 router.patch('/:id/actual-price', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.updateActualPrice);
+router.patch('/:id/set-payment', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.setPayment);
 // Add / Remove / Update items in an order
 router.post('/:id/items', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.addOrderItem);
 router.patch('/:id/items/:itemId', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.updateOrderItem);

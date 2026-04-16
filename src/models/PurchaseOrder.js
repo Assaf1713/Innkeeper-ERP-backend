@@ -53,7 +53,7 @@ const purchaseOrderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['DRAFT', 'SENT', 'RECEIVED', 'CANCELED'],
+      enum: ['DRAFT', 'SENT', 'RECEIVED', 'CANCELED', 'COMPLETED'],
       default: 'DRAFT',
     },
     isPaid: {
@@ -71,6 +71,12 @@ const purchaseOrderSchema = new mongoose.Schema(
       default : 0,
       min : 0 ,
     },
+    TotalAmountPaid : {
+      type : Number,
+      default : 0,
+      min : 0,
+    },
+
     notes: {
       type: String,
       trim: true,
