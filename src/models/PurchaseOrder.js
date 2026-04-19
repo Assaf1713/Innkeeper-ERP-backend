@@ -89,6 +89,10 @@ const purchaseOrderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Expense',
     },
+    invoicePdfUrl: {
+      type: String,
+      trim: true,
+    },
   },
   { timestamps: true }
 );
