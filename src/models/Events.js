@@ -40,6 +40,8 @@ const eventSchema = new mongoose.Schema(
     price: { type: Number, min: 0, default: 0 },
     depositPaid: { type: Number, min: 0, default: 0 },
     notes: { type: String, trim: true },
+    quotePdfurl : { type: String, trim: true },
+    quoteFolderUrl : { type: String, trim: true },
 
     // Google Distance Matrix results (optional, can be filled in later):
     travelDistance: { type: Number, default: 0 }, //  Distance in meters

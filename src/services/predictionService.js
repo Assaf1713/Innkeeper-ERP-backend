@@ -55,7 +55,8 @@ exports.calculateCategoryStats = async (eventType) => {
 
     const sum = consumptionPerHead.reduce((a, b) => a + b, 0);
     const avg = sum / consumptionPerHead.length;
-    const variance = consumptionPerHead.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / consumptionPerHead.length;
+    const n = consumptionPerHead.length;
+    const variance = n>1 ? consumptionPerHead.reduce((a, b) => a + Math.pow(b - avg, 2), 0) / (n - 1) : 0;
     
     results[category] = {
       averagePerHead: avg,

@@ -358,6 +358,8 @@ exports.createEvent = async (req, res, next) => {
       notes: notes || "",
       travelDistance,
       travelDuration,
+      quotePdfUrl: quotePdfUrl || "",
+      quoteFolderUrl: quoteFolderUrl || "",
     });
 
     // ====================================================================
@@ -440,6 +442,9 @@ exports.updateEvent = async (req, res, next) => {
       leadSourceCode,
       menuTypeCode,
       statusCode,
+      quotePdfUrl,
+      quoteFolderUrl,
+
     } = req.body;
 
     const patch = {};
@@ -454,6 +459,8 @@ exports.updateEvent = async (req, res, next) => {
     if (notes !== undefined) patch.notes = notes || "";
     if (startTime !== undefined) patch.startTime = startTime || "";
     if (endTime !== undefined) patch.endTime = endTime || "";
+    if (quotePdfUrl !== undefined) patch.quotePdfUrl = quotePdfUrl || "";
+    if (quoteFolderUrl !== undefined) patch.quoteFolderUrl = quoteFolderUrl || "";
 
     // Handle price with error catching
     if (price !== undefined) {
