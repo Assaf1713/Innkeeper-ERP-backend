@@ -18,23 +18,23 @@ const slugify = (text) =>
 
 const updateNetPrice = (price) => {
   return Number((price / 1.18).toFixed(2));
-}
+};
 
 // GET /api/lookups/inventory-products
 exports.listInventoryProducts = async (req, res, next) => {
   try {
-    const items = await InventoryProduct.find().populate("supplier", "name")
-      .sort({isActive: -1, label: 1 }); // nice UX for dropdown
+    const items = await InventoryProduct.find()
+      .populate("supplier", "name")
+      .sort({ isActive: -1, label: 1 }); // nice UX for dropdown
     for (const item of items) {
       if (item.price && !item.netPrice) {
         item.netPrice = updateNetPrice(item.price);
         await item.save();
-      }
-      else if (!item.price && item.netPrice) {
+      } else if (!item.price && item.netPrice) {
         item.price = Number((item.netPrice * 1.18).toFixed(2));
         await item.save();
       }
-        }
+    }
     return res.json({ inventoryProducts: items });
   } catch (err) {
     next(err);
@@ -47,13 +47,14 @@ exports.createInventoryProduct = async (req, res, next) => {
     const {
       code,
       label,
+      superCategory = "ALCOHOL",
       category = "",
       menuTypeLabel = "",
-      supplier = "",
+      supplier = null,
       volumeMl = 0,
       price = 0,
       netPrice = 0,
-      notes="",
+      notes = "",
     } = req.body;
 
     if (!label || !String(label).trim()) {
@@ -69,21 +70,25 @@ exports.createInventoryProduct = async (req, res, next) => {
     const created = await InventoryProduct.create({
       code: finalCode,
       label: String(label).trim(),
+      superCategory,
       category,
       menuTypeLabel,
-      supplier,
+      supplier: supplier || null,
       volumeMl: Number(volumeMl) || 0,
-      price: price ? Number(price) || 0 : Number(netPrice * 1.18).toFixed(2),
-      netPrice: netPrice? Number(netPrice) || 0 : Number(price / 1.18).toFixed(2),
+      price: price ? Number(price) || 0 : Number((netPrice * 1.18).toFixed(2)),
+      netPrice: netPrice
+        ? Number(netPrice) || 0
+        : Number((price / 1.18).toFixed(2)),
       notes: String(notes).trim(),
       isActive: true,
     });
+    const populated = await created.populate("supplier", "name");
 
-    return res.status(201).json({ inventoryProduct: created });
+    return res.status(201).json({ inventoryProduct: populated });
   } catch (err) {
     // Duplicate key (code unique) — your schema enforces unique code :contentReference[oaicite:5]{index=5}
     if (err?.code === 11000) {
-      return res.status(409).json({ error: "code already exists" });
+      return res.status(409).json({ error: "inventory product already exists" });
     }
     next(err);
   }
@@ -96,6 +101,7 @@ exports.updateInventoryProduct = async (req, res, next) => {
 
     const allowed = [
       "label",
+      "superCategory",
       "category",
       "menuTypeLabel",
       "supplier",
@@ -104,6 +110,7 @@ exports.updateInventoryProduct = async (req, res, next) => {
       "netPrice",
       "notes",
       "isActive",
+      "defaultForWork",
     ];
 
     const patch = {};
@@ -117,20 +124,21 @@ exports.updateInventoryProduct = async (req, res, next) => {
       }
     }
     // normalize numeric fields
-    if (patch.volumeMl !== undefined) patch.volumeMl = Number(patch.volumeMl) || 0;
-    if( patch.price !== undefined && patch.netPrice !== undefined) {
+    if (patch.volumeMl !== undefined)
+      patch.volumeMl = Number(patch.volumeMl) || 0;
+     if (patch.price && !patch.netPrice) {
       patch.price = Number(patch.price) || 0;
+      patch.netPrice = Number((patch.price / 1.18).toFixed(2));
+    } else if (patch.netPrice && !patch.price) {
       patch.netPrice = Number(patch.netPrice) || 0;
-    } else if (patch.price !== undefined) {
-      patch.price = Number(patch.price) || 0;
-      patch.netPrice = Number(patch.price / 1.18).toFixed(2);
-    } else if (patch.netPrice !== undefined) {
-      patch.netPrice = Number(patch.netPrice) || 0;
-      patch.price = Number(patch.netPrice * 1.18).toFixed(2);
+      patch.price = Number((patch.netPrice * 1.18).toFixed(2));
     }
 
-    const updated = await InventoryProduct.findByIdAndUpdate(id, patch, { new: true });
-    if (!updated) return res.status(404).json({ error: "Inventory product not found" });
+    const updated = await InventoryProduct.findByIdAndUpdate(id, patch, {
+      new: true,
+    }).populate("supplier", "name");
+    if (!updated)
+      return res.status(404).json({ error: "Inventory product not found" });
 
     return res.json({ inventoryProduct: updated });
   } catch (err) {
@@ -143,7 +151,8 @@ exports.deleteInventoryProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
     const deleted = await InventoryProduct.findByIdAndDelete(id);
-    if (!deleted) return res.status(404).json({ error: "Inventory product not found" });
+    if (!deleted)
+      return res.status(404).json({ error: "Inventory product not found" });
 
     return res.json({ message: "Inventory product deleted successfully" });
   } catch (err) {
@@ -164,18 +173,20 @@ exports.ChangeVATbulkEdit = async (req, res, next) => {
   try {
     const { newVAT } = req.body;
     if (newVAT === undefined || isNaN(Number(newVAT))) {
-      return res.status(400).json({ error: "newVAT is required and must be a number" });
+      return res
+        .status(400)
+        .json({ error: "newVAT is required and must be a number" });
     }
-    
+
     // Save the new VAT rate to settings
     await Settings.findOneAndUpdate(
       { key: "currentVAT" },
-      { 
-        key: "currentVAT", 
+      {
+        key: "currentVAT",
         value: Number(newVAT),
-        description: "Current VAT percentage used for product pricing"
+        description: "Current VAT percentage used for product pricing",
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
 
     const vatRate = Number(newVAT) / 100;

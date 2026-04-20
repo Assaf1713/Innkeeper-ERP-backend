@@ -59,6 +59,10 @@ exports.upsertAlcoholExpense = async (req, res, next) => {
       finalAmountPerGuest = guestCount > 0 ? finalTotalAmount / guestCount : 0;
     }
 
+    const finalProductPriceSnapshot = product.price || 0;
+    const finalProductLabelSnapshot = product.label || "";
+    const finalProductVolumeMlSnapshot = product.volumeMl || 0;
+
     // IMPORTANT: schema has unique index on event+product
     // So the correct behavior is to "upsert" — update if exists, else create.
     const updated = await AlcoholExpense.findOneAndUpdate(
@@ -69,6 +73,9 @@ exports.upsertAlcoholExpense = async (req, res, next) => {
           eventNumber: ev.eventNumber,
           totalAmount: finalTotalAmount,
           amountPerGuest: finalAmountPerGuest,
+          productPriceSnapshot: finalProductPriceSnapshot,
+          productLabelSnapshot: finalProductLabelSnapshot,
+          productVolumeMlSnapshot: finalProductVolumeMlSnapshot,
         },
       },
       { new: true, upsert: true, setDefaultsOnInsert: true }

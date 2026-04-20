@@ -88,7 +88,7 @@ exports.upsertEventActuals = async (req, res, next) => {
     );
     const totalAlcoholExpenses = alcoholExpenses.reduce((acc, e) => {
       const bottles = Number(e?.bottlesUsed) || 0;
-      const price = Number(e?.product?.price) || 0;
+      const price = Number(e?.productPriceSnapshot ?? e?.product?.price) || 0; // prefer snapshot, fallback to populated price, else 0
       return acc + bottles * price;
     }, 0);
 
