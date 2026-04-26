@@ -23,11 +23,6 @@ const INVENTORY_ERROR_CODES = {
 
 const round2 = (value) => Number(Number(value || 0).toFixed(2));
 
-const asNullableNumber = (value) => {
-  if (value === undefined || value === null || value === "") return null;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : NaN;
-};
 
 const errorResponse = (res, status, code, message, details) =>
   res.status(status).json({
@@ -53,6 +48,12 @@ const slugify = (text) =>
 
 const updateNetPrice = (price, vatMultiplier) => {
   return round2(Number(price) / vatMultiplier);
+};
+
+const asNullableNumber = (value) => {
+  if (value === undefined || value === null || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : NaN;
 };
 
 const derivePriceFields = ({ price, netPrice }, vatMultiplier) => {
