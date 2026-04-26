@@ -23,19 +23,40 @@ exports.listAlcoholExpenses = async (req, res, next) => {
 exports.upsertAlcoholExpense = async (req, res, next) => {
   try {
     const { id: eventId } = req.params;
-    const { productId, bottlesUsed, totalAmount, amountPerGuest } = req.body;
+    const {
+      productId,
+      expenseId,
+      bottlesUsed,
+      totalAmount,
+      amountPerGuest,
+    } = req.body;
 
-    if (!productId)
+    let resolvedProductId = productId;
+    if (!resolvedProductId && expenseId) {
+      const existingExpense = await AlcoholExpense.findOne({
+        _id: expenseId,
+        event: eventId,
+      })
+        .select("product")
+        .lean();
+      resolvedProductId = existingExpense?.product?.toString();
+    }
+
+    if (!resolvedProductId)
       return res.status(400).json({ error: "productId is required" });
     if (bottlesUsed === undefined || bottlesUsed === null) {
       return res.status(400).json({ error: "bottlesUsed is required" });
     }
-    if (Number(bottlesUsed) < 0) {
+    const parsedBottlesUsed = Number(bottlesUsed);
+    if (!Number.isFinite(parsedBottlesUsed)) {
+      return res.status(400).json({ error: "bottlesUsed must be a number" });
+    }
+    if (parsedBottlesUsed < 0) {
       return res.status(400).json({ error: "bottlesUsed must be >= 0" });
     }
 
     // Validate product exists
-    const product = await InventoryProduct.findById(productId).lean();
+    const product = await InventoryProduct.findById(resolvedProductId).lean();
     if (!product) return res.status(400).json({ error: "Invalid productId" });
 
     // Optional: store eventNumber for convenience (your schema has eventNumber) :contentReference[oaicite:6]{index=6}
@@ -44,7 +65,6 @@ exports.upsertAlcoholExpense = async (req, res, next) => {
       .lean();
     if (!ev) return res.status(404).json({ error: "Event not found" });
     const guestCount = ev?.guestCount || 0;
-    console.log("Event guestCount:", guestCount);
     const productAmount = product?.volumeMl || 0;
 
     // Calculate totals if not provided
@@ -52,7 +72,7 @@ exports.upsertAlcoholExpense = async (req, res, next) => {
     let finalAmountPerGuest = amountPerGuest;
     
     if (finalTotalAmount === undefined || finalTotalAmount === null) {
-      finalTotalAmount = bottlesUsed * productAmount;
+      finalTotalAmount = parsedBottlesUsed * productAmount;
     }
     
     if (finalAmountPerGuest === undefined || finalAmountPerGuest === null) {
@@ -66,10 +86,10 @@ exports.upsertAlcoholExpense = async (req, res, next) => {
     // IMPORTANT: schema has unique index on event+product
     // So the correct behavior is to "upsert" — update if exists, else create.
     const updated = await AlcoholExpense.findOneAndUpdate(
-      { event: eventId, product: productId },
+      { event: eventId, product: resolvedProductId },
       {
         $set: {
-          bottlesUsed: Number(bottlesUsed),
+          bottlesUsed: parsedBottlesUsed,
           eventNumber: ev.eventNumber,
           totalAmount: finalTotalAmount,
           amountPerGuest: finalAmountPerGuest,

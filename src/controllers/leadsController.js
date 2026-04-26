@@ -1,5 +1,6 @@
 const Lead = require("../models/Lead");
 const Customer = require("../models/Customers");
+const { updateMany } = require("../models/Events");
 
 const normalizeIsraelPhone = (phoneInput) => {
   if (!phoneInput) return null;
@@ -39,6 +40,33 @@ const checkMalisiousContent = (text) => {
   return maliciousPatterns.some((pattern) => pattern.test(text));
 };
 
+
+const isExpired = (lead) => {
+  if (!lead.eventDate) return false; // If no event date, we can't say it's expired
+  const now = new Date();
+  const eventDate = new Date(lead.eventDate);
+  return eventDate < now && (lead.status === "Contacted" || lead.status === "New");
+};
+
+const HandleExpiredLeads = async () => {
+  try {
+    const leads = await Lead.find({ status: { $ne: "Lost" }, eventDate: { $exists: true } });
+    const expiredLeadIds = leads.filter(isExpired).map((lead) => lead._id);
+    
+    if (expiredLeadIds.length > 0) {
+      await Lead.updateMany(
+        { _id: { $in: expiredLeadIds } },
+        { $set: { status: "Lost" } }
+      );
+      console.log(`Updated ${expiredLeadIds.length} expired leads to Lost status.`);
+    } else {
+      console.log("No expired leads found.");
+    }
+  } catch (error) {
+    console.error("Error checking for expired leads:", error);
+  }
+};
+
 /**
  * ממיר תאריך מאלמנטור (למשל: "ינואר 26, 2026") לאובייקט Date של JS
  */
@@ -46,6 +74,7 @@ const checkMalisiousContent = (text) => {
 
 exports.ListLeads = async (req, res) => {
   try {
+    await HandleExpiredLeads(); // Check and update expired leads before listing
     const leads = await Lead.find().sort({ createdAt: -1 });
     res.status(200).json(leads);
   } catch (error) {
@@ -238,6 +267,16 @@ exports.updateLeadData = async (req, res) => {
     if (updateData.email && !checkEmailFormat(updateData.email)) {
       return res.status(400).json({ error: "Invalid email format" });
     }
+    if (updateData.userNotes) {
+      console.log(`✏️ Updating user notes for lead ${leadId}: ${updateData.userNotes}`);
+      updateData.userNotes = updateData.userNotes.trim();
+      // change status to Contacted if userNotes are added to a New lead
+      const existingLead = await Lead.findById(leadId);
+      if (existingLead && existingLead.status === "New") {
+        updateData.status = "Contacted";
+      }
+    }
+    
 
     const updatedLead = await Lead.findByIdAndUpdate(leadId, updateData, {
       new: true,
@@ -245,7 +284,7 @@ exports.updateLeadData = async (req, res) => {
     if (!updatedLead) {
       return res.status(404).json({ error: "Lead not found" });
     }
-    res.status(200).json(updatedLead);
+    res.status(200).json({ lead: updatedLead });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

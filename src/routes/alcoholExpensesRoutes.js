@@ -10,4 +10,5 @@ router.use(verifyToken, requireRoles("SUPER_ADMIN", "ADMIN"));
 // DELETE /api/alcohol-expenses/:id
 router.delete("/:id", deleteAlcoholExpense);
 
+
 module.exports = router;

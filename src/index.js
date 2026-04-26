@@ -27,8 +27,15 @@ app.use('/api', apiRouter);
 
 app.use((err, req, res, next) => {
   console.error('🔥 Error:', err);
-  res.status(err.status || 500).json({
-    error: err.message || 'Internal Server Error'
+  const status = err.status || 500;
+  const message = err.message || 'Internal Server Error';
+  const code = err.code || 'INTERNAL_ERROR';
+
+  res.status(status).json({
+    success: false,
+    error: message,
+    errorCode: code,
+    errorDetails: err.details,
   });
 });
 
