@@ -40,25 +40,31 @@ const checkMalisiousContent = (text) => {
   return maliciousPatterns.some((pattern) => pattern.test(text));
 };
 
-
 const isExpired = (lead) => {
   if (!lead.eventDate) return false; // If no event date, we can't say it's expired
   const now = new Date();
   const eventDate = new Date(lead.eventDate);
-  return eventDate < now && (lead.status === "Contacted" || lead.status === "New");
+  return (
+    eventDate < now && (lead.status === "Contacted" || lead.status === "New")
+  );
 };
 
 const HandleExpiredLeads = async () => {
   try {
-    const leads = await Lead.find({ status: { $ne: "Lost" }, eventDate: { $exists: true } });
+    const leads = await Lead.find({
+      status: { $ne: "Lost" },
+      eventDate: { $exists: true },
+    });
     const expiredLeadIds = leads.filter(isExpired).map((lead) => lead._id);
-    
+
     if (expiredLeadIds.length > 0) {
       await Lead.updateMany(
         { _id: { $in: expiredLeadIds } },
-        { $set: { status: "Lost" } }
+        { $set: { status: "Lost" } },
       );
-      console.log(`Updated ${expiredLeadIds.length} expired leads to Lost status.`);
+      console.log(
+        `Updated ${expiredLeadIds.length} expired leads to Lost status.`,
+      );
     } else {
       console.log("No expired leads found.");
     }
@@ -70,7 +76,6 @@ const HandleExpiredLeads = async () => {
 /**
  * ממיר תאריך מאלמנטור (למשל: "ינואר 26, 2026") לאובייקט Date של JS
  */
-
 
 exports.ListLeads = async (req, res) => {
   try {
@@ -88,8 +93,13 @@ exports.createLead = async (req, res) => {
 
     // Security check for malicious content
     for (const key in leadData) {
-      if (typeof leadData[key] === "string" && checkMalisiousContent(leadData[key])) {
-        console.error(`❌ Malicious content detected in field ${key}: ${leadData[key]}`);
+      if (
+        typeof leadData[key] === "string" &&
+        checkMalisiousContent(leadData[key])
+      ) {
+        console.error(
+          `❌ Malicious content detected in field ${key}: ${leadData[key]}`,
+        );
         return res.status(400).json({ error: "Malicious content detected" });
       }
     }
@@ -111,8 +121,8 @@ exports.createLead = async (req, res) => {
     // Check for existing customer by email to link
     let relatedCustomerId = null;
     if (leadData.email) {
-      const existingCustomer = await Customer.findOne({ 
-        email: leadData.email.toLowerCase().trim() 
+      const existingCustomer = await Customer.findOne({
+        email: leadData.email.toLowerCase().trim(),
       });
       if (existingCustomer) {
         relatedCustomerId = existingCustomer._id;
@@ -134,8 +144,10 @@ exports.createLead = async (req, res) => {
     });
 
     await newLead.save();
-    console.log(`✅ Lead created manually: ${newLead.fullName}, Phone: ${newLead.phone}`);
-    
+    console.log(
+      `✅ Lead created manually: ${newLead.fullName}, Phone: ${newLead.phone}`,
+    );
+
     res.status(201).json(newLead);
   } catch (error) {
     console.error("❌ Error creating lead:", error.message);
@@ -147,8 +159,10 @@ exports.createLeadFromWebhook = async (req, res) => {
   try {
     console.log("📥 Webhook hit: Processing incoming lead data...");
     // Send immediate response for fast UX (user gets redirected to WhatsApp quickly)
-    res.status(200).json({ success: true, message: "Lead received successfully" });
-    
+    res
+      .status(200)
+      .json({ success: true, message: "Lead received successfully" });
+
     const rawData = req.body;
     console.log("🔍 Processing Lead:", JSON.stringify(rawData, null, 2));
 
@@ -158,13 +172,13 @@ exports.createLeadFromWebhook = async (req, res) => {
       if (rawData.fields && rawData.fields[englishId]) {
         return rawData.fields[englishId].value;
       }
-      
+
       // 2. Fallback to the old flat format (backward compatibility)
       return (
-        rawData[englishId] || 
-        rawData[oldHebrewLabel] || 
-        rawData[`אין תווית ${englishId}`] || 
-        rawData[`אין תווית ${oldHebrewLabel}`] || 
+        rawData[englishId] ||
+        rawData[oldHebrewLabel] ||
+        rawData[`אין תווית ${englishId}`] ||
+        rawData[`אין תווית ${oldHebrewLabel}`] ||
         null
       );
     };
@@ -178,10 +192,20 @@ exports.createLeadFromWebhook = async (req, res) => {
     const rawDate = extractField("event_date", "תאריך האירוע");
 
     // Extracting metadata (Advanced Data places this in a dedicated object)
-    const form_name = rawData?.form?.name || extractField("form_name", "form_name");
-    const page_url = rawData?.meta?.page_url?.value || rawData?.meta?.page_url || extractField("page_url", "קישור לעמוד");
-    const userAgent = rawData?.meta?.user_agent?.value || rawData?.meta?.user_agent || extractField("user_agent", "פרטי משתמש");
-    const ip = rawData?.meta?.remote_ip?.value || rawData?.meta?.remote_ip || extractField("remote_ip", "IP השולח");
+    const form_name =
+      rawData?.form?.name || extractField("form_name", "form_name");
+    const page_url =
+      rawData?.meta?.page_url?.value ||
+      rawData?.meta?.page_url ||
+      extractField("page_url", "קישור לעמוד");
+    const userAgent =
+      rawData?.meta?.user_agent?.value ||
+      rawData?.meta?.user_agent ||
+      extractField("user_agent", "פרטי משתמש");
+    const ip =
+      rawData?.meta?.remote_ip?.value ||
+      rawData?.meta?.remote_ip ||
+      extractField("remote_ip", "IP השולח");
 
     // Security check for malicious content (Updated to check the extracted string values)
     const fieldsToCheck = [rawPhone, name, email, message, preferences];
@@ -200,7 +224,7 @@ exports.createLeadFromWebhook = async (req, res) => {
         eventDate = parsedDate;
       }
     }
-  
+
     // Phone normalization and validation
     const normalizedPhone = normalizeIsraelPhone(rawPhone);
 
@@ -213,19 +237,25 @@ exports.createLeadFromWebhook = async (req, res) => {
     let source = "original_contact_form"; // default for unknown sources
     const pageUrl = (page_url || "").toLowerCase();
     const isFromLandingPage = pageUrl.includes("landing");
-    
+
     if (form_name && form_name.includes("WhatsApp")) {
-      source = isFromLandingPage ? "landing_page_whatsapp_form" : "whatsApp_original";
+      source = isFromLandingPage
+        ? "landing_page_whatsapp_form"
+        : "whatsApp_original";
     } else if (form_name && form_name.includes("contact_form")) {
-      source = isFromLandingPage ? "landing_page_contact_form" : "original_contact_form";
+      source = isFromLandingPage
+        ? "landing_page_contact_form"
+        : "original_contact_form";
     }
 
     // Check for existing customer by email to link
     let relatedCustomerId = null;
     if (email) {
-      const existingCustomer = await Customer.findOne({ email: email.toLowerCase().trim() });
+      const existingCustomer = await Customer.findOne({
+        email: email.toLowerCase().trim(),
+      });
       if (existingCustomer) {
-          relatedCustomerId = existingCustomer._id;
+        relatedCustomerId = existingCustomer._id;
       }
     }
 
@@ -267,8 +297,22 @@ exports.updateLeadData = async (req, res) => {
     if (updateData.email && !checkEmailFormat(updateData.email)) {
       return res.status(400).json({ error: "Invalid email format" });
     }
+    // check for existing customer by email to link (if email is being updated)
+    if (updateData.email) {
+      const existingCustomer = await Customer.findOne({
+        email: updateData.email.toLowerCase().trim(),
+      });
+      if (existingCustomer) {
+        updateData.relatedCustomerId = existingCustomer._id;
+        console.log(
+          `🔗 Linked lead ${leadId} to existing customer ${existingCustomer._id} based on email ${updateData.email}`,
+        );
+      }
+    }
     if (updateData.userNotes) {
-      console.log(`✏️ Updating user notes for lead ${leadId}: ${updateData.userNotes}`);
+      console.log(
+        `✏️ Updating user notes for lead ${leadId}: ${updateData.userNotes}`,
+      );
       updateData.userNotes = updateData.userNotes.trim();
       // change status to Contacted if userNotes are added to a New lead
       const existingLead = await Lead.findById(leadId);
@@ -276,7 +320,6 @@ exports.updateLeadData = async (req, res) => {
         updateData.status = "Contacted";
       }
     }
-    
 
     const updatedLead = await Lead.findByIdAndUpdate(leadId, updateData, {
       new: true,

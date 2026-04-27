@@ -9,6 +9,7 @@ router.use(verifyToken);
 // All roles can view orders
 router.get('/', purchaseOrderController.getOrders);
 router.get('/:id', purchaseOrderController.getOrderById);
+router.get('/related-to-event/:eventId', purchaseOrderController.getOrdersRelatedToEvent);
 
 // Restrict creation and modifications to ADMIN and SUPER_ADMIN
 router.post('/', requireRoles('ADMIN', 'SUPER_ADMIN'), purchaseOrderController.createOrder);

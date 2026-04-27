@@ -85,7 +85,7 @@ exports.getOrderById = async (req, res) => {
       .populate("items.product", "code label superCategory netPrice notes")
       .populate(
         "relatedEvent",
-        "eventNumber eventDate address startTime customerName status",
+        "eventNumber eventDate address startTime guestCount customerName status",
       );
 
     if (!order) {
@@ -123,7 +123,7 @@ exports.createOrder = async (req, res) => {
       .populate("supplier", "name contactName phone")
       .populate(
         "relatedEvent",
-        "eventNumber eventDate address startTime customerName status",
+        "eventNumber eventDate address startTime guestCount customerName status",
       );
 
     res.status(201).json(populatedOrder);
@@ -417,5 +417,24 @@ exports.updateActualPrice = async (req, res) => {
     res
       .status(400)
       .json({ message: "Error updating actual price", error: error.message });
+  }
+};
+
+exports.getOrdersRelatedToEvent = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const orders = await PurchaseOrder.find({ relatedEvent: eventId })
+      .populate("supplier", "name contactName phone")
+      .populate("items.product", "code label superCategory netPrice notes")
+      .populate(
+        "relatedEvent",
+        "eventNumber eventDate address startTime customerName status",
+      )
+      .sort({ createdAt: -1 });
+    res.status(200).json(orders);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching related orders", error: error.message });
   }
 };

@@ -13,6 +13,7 @@ const { upsertBrevoContact } = require("../services/brevoAddCustomer");
 const { getTravelEstimate } = require("../services/googleMapsService");
 const { calculateCategoryStats } = require("../services/predictionService");
 const {getEventTypesDict} = require("../services/getEventTypesDict");
+const {checkisBusiness} = require ("../services/emailClassificationHelper");
 
 const calculatePrice = (priceInput) => {
   // Handle null/undefined early
@@ -75,34 +76,7 @@ const LastThreeDays = () => {
   return lastThreeDays;
 };
 
-const checkisBusiness = (email) => {
-  if (!email) return false;
-  const businessDomains = [
-    "info@",
-    "contact@",
-    "support@",
-    "sales@",
-    "service@",
-    "admin@",
-    "office@",
-  ];
-  const privateDomains = [
-    "gmail.com",
-    "yahoo.com",
-    "hotmail.com",
-    "outlook.com",
-    "aol.com",
-    "icloud.com",
-  ];
-  const emailLower = email.toLowerCase();
-  for (const domain of businessDomains) {
-    if (emailLower.includes(domain)) return true;
-  }
-  for (const domain of privateDomains) {
-    if (emailLower.includes(domain)) return false;
-  }
-  return true;
-};
+
 
 // פונקציה לסגירת אירועים שפג תוקפם
 const closeExpiredEvents = async () => {
@@ -228,21 +202,12 @@ exports.createEvent = async (req, res, next) => {
 
         // Sync to Brevo CRM if enabled
         if (process.env.BREVO_SYNC_ENABLED === "true" && email) {
-          const attributes = {
-            FIRSTNAME: customer.name || "",
-            CUSTOMER_TYPE: customer.IsBusiness ? 1 : 2,
-            PAYING_CUSTOMER: customer.payingCustomer || false,
-          };
-          if (customer.phone) {
-            attributes.SMS = customer.phone;
-          }
           try {
             await upsertBrevoContact({
-              email: customer.email,
-              attributes,
+              customer,
               listId: 5,
             });
-            console.log("Successfully synced contact to Brevo");
+            console.log("Successfully SYNCED contact to Brevo");
           } catch (error) {
             console.error("Failed to sync contact to Brevo:", error);
           }
@@ -358,8 +323,8 @@ exports.createEvent = async (req, res, next) => {
       notes: notes || "",
       travelDistance,
       travelDuration,
-      quotePdfUrl: quotePdfUrl || "",
-      quoteFolderUrl: quoteFolderUrl || "",
+      quotePdfUrl:  "",
+      quoteFolderUrl: "",
     });
 
     // ====================================================================
@@ -589,18 +554,14 @@ exports.updateEvent = async (req, res, next) => {
         console.log(
           `Setting Customer ${customer._id} paying status to true in Brevo for event ${req.params.id}`,
         );
-        const attributes = {
-          PAYING_CUSTOMER: true,
-        };
         try {
           await upsertBrevoContact({
-            email: customer.email,
-            attributes,
+            customer,
             listId: 5,
           });
           // console.log success + reponse from brevo
           console.log(
-            "Successfully synced contact to Brevo:",
+            "Successfully SYNCED contact to Brevo:",
             res.status(200).data,
           );
         } catch (error) {
@@ -633,23 +594,26 @@ exports.updateEvent = async (req, res, next) => {
           `Lead ${linkedLead._id} status reverted to Qualified for event ${req.params.id}`,
         );
       }
+      if (customer) {
+        customer.payingCustomer = false;
+        await customer.save();
+        console.log(
+          `Customer ${customer._id} paying status set to false for event ${req.params.id}`,
+        );
+      }
       // auto change the customer paying status to false in BREVO if enabled
       if (process.env.BREVO_SYNC_ENABLED === "true" && customer) {
         console.log(
           `Setting Customer ${customer._id} paying status to false in Brevo for event ${req.params.id}`,
         );
-        const attributes = {
-          PAYING_CUSTOMER: false,
-        };
         try {
           await upsertBrevoContact({
-            email: customer.email,
-            attributes,
+            customer,
             listId: 5,
           });
           // console.log success + reponse from brevo
           console.log(
-            "Successfully synced contact to Brevo:",
+            "Successfully SYNCED contact to Brevo:",
             res.status(200).data,
           );
         } catch (error) {
