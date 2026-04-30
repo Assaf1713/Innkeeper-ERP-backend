@@ -55,5 +55,8 @@ router.use('/pricing', require('./pricingRoutes'));
 // router for settings
 router.use('/settings', require('./settingsRoutes'));
 
+// router for reports
+router.use('/reports', require('./reportsRoutes'));
+
 module.exports = router;
 
